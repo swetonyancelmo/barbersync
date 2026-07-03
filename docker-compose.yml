@@ -1,0 +1,26 @@
+# Infra de desenvolvimento local do BarberSync.
+# Sobe apenas o PostgreSQL — a API e os dois fronts rodam via npm (workspaces).
+# Em produção, este banco vira um Postgres gerenciado (ver README §Deploy).
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: barbersync-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: barbersync
+    # Host 5433 → container 5432. Evita conflito com um Postgres nativo que
+    # eventualmente já ocupe a 5432 na máquina de dev.
+    ports:
+      - '5433:5432'
+    volumes:
+      - barbersync_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d barbersync']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  barbersync_pgdata:

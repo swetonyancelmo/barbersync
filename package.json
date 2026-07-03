@@ -1,0 +1,20 @@
+{
+  "name": "barbersync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "BarberSync — plataforma SaaS multi-tenant de agendamento para barbearias",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:shared": "npm run build --workspace @barbersync/shared",
+    "dev:api": "npm run start:dev --workspace @barbersync/api",
+    "dev:client": "npm run dev --workspace @barbersync/client",
+    "dev:admin": "npm run dev --workspace @barbersync/admin",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

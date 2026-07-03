@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": false,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    // incremental desligado de propósito: o .tsbuildinfo era gravado fora do
+    // dist, então o deleteOutDir do nest não o limpava e o build "0 errors"
+    // pulava a emissão, deixando dist/main.js sem ser gerado.
+    "incremental": false,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+    // @barbersync/shared é resolvido pelo symlink em node_modules (dist + .d.ts).
+    // Não mapeamos para o source aqui: isso empurraria o rootDir para a raiz do
+    // monorepo e faria o build emitir em dist/apps/api em vez de dist/main.js.
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
