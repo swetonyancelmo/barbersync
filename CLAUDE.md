@@ -34,6 +34,8 @@ barbersync/
 
 **Gotchas de ambiente:** há um **Postgres nativo do Windows na 5432** → o docker-compose publica o banco em **5433** (`DB_PORT=5433`). O `apps/api/tsconfig.json` **não** mapeia `@barbersync/shared` para o source e tem `incremental:false` — não reative nenhum dos dois (senão o `nest build` emite em `dist/apps/api/...` ou pula a emissão e some o `dist/main.js`).
 
+**Skills do projeto** (`.claude/skills/`): `nestjs-module` (padrão de módulo backend + tenant), `barbersync-run-verify` (rodar/seed/e2e + gotchas de ambiente), `barbersync-ui` (design system dos fronts), `notification-channel` (adicionar canal/evento de notificação). Use-as ao mexer nas áreas correspondentes.
+
 **Pendências conhecidas:** sem migrations TypeORM (usa `DB_SYNC=true` em dev); design real do Claude Design não foi importado (MCP pediu consentimento em sessão não-interativa — tokens vieram desta doc + refino visual da §4); infra de produção não provisionada (alvo sugerido no README).
 
 ## 1. Visão geral
