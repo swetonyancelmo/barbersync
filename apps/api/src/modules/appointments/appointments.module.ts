@@ -7,6 +7,7 @@ import { ServicesModule } from '../services/services.module';
 import { BarbersModule } from '../barbers/barbers.module';
 import { TenantsModule } from '../tenants/tenants.module';
 import { ScheduleModule } from '../schedule/schedule.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ScheduleModule } from '../schedule/schedule.module';
     BarbersModule,
     TenantsModule,
     ScheduleModule,
+    NotificationsModule,
   ],
   controllers: [AppointmentsController],
   providers: [AppointmentsService],

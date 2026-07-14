@@ -14,6 +14,7 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
     PaymentsModule,
     LoyaltyModule,
     ScheduleModule,
+    NotificationsModule,
   ],
   providers: [
     // JWT autentica toda rota (exceto @Public); RolesGuard aplica @Roles.

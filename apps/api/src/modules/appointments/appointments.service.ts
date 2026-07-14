@@ -12,6 +12,8 @@ import { Agendamento } from './agendamento.entity';
 import { ServicesService } from '../services/services.service';
 import { BarbersService } from '../barbers/barbers.service';
 import { ScheduleService } from '../schedule/schedule.service';
+import { TenantsService } from '../tenants/tenants.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateAppointmentDto } from './dto/appointment.dto';
 
 /** Slots de manhã são os que começam antes de 12:00; o resto é tarde. */
@@ -25,6 +27,8 @@ export class AppointmentsService {
     private readonly services: ServicesService,
     private readonly barbers: BarbersService,
     private readonly schedule: ScheduleService,
+    private readonly tenants: TenantsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   // ----- Fluxo do cliente: criar agendamento (entra como PENDENTE) ----------
@@ -210,8 +214,35 @@ export class AppointmentsService {
   ): Promise<Agendamento> {
     const agendamento = await this.repo.findOne({ where: { id, tenantId } });
     if (!agendamento) throw new NotFoundException('Agendamento não encontrado.');
+
+    const era = agendamento.status;
     agendamento.status = status;
-    return this.repo.save(agendamento);
+    const salvo = await this.repo.save(agendamento);
+
+    // Notifica o cliente ao confirmar — só na transição (idempotente: não
+    // reenvia se já estava CONFIRMADO). Fire-and-forget: não bloqueia a resposta.
+    if (status === AppointmentStatus.CONFIRMADO && era !== AppointmentStatus.CONFIRMADO) {
+      void this.dispatchConfirmacao(salvo, tenantId);
+    }
+    return salvo;
+  }
+
+  private async dispatchConfirmacao(agendamento: Agendamento, tenantId: string): Promise<void> {
+    try {
+      const tenant = await this.tenants.findById(tenantId);
+      await this.notifications.notifyAppointmentConfirmed({
+        clienteNome: agendamento.cliente.nome,
+        clienteEmail: agendamento.cliente.email,
+        clienteTelefone: agendamento.cliente.telefone,
+        barbeariaNome: tenant.nome,
+        barbeiroNome: agendamento.barbeiro.user.nome,
+        servicos: agendamento.servicos.map((s) => s.nome),
+        dataHora: agendamento.dataHora,
+        valorTotal: Number(agendamento.valorTotal),
+      });
+    } catch {
+      /* NotificationsService já loga; nunca propagar para não afetar a confirmação. */
+    }
   }
 
   async findByIdInTenant(id: string, tenantId: string): Promise<Agendamento> {
