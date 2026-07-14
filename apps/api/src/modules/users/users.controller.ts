@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Query } from '@nestjs/common';
 import { JwtPayload, LoyaltyTier, UserRole } from '@barbersync/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -6,6 +6,7 @@ import { resolveTenantId } from '../../common/tenant/tenant-context';
 import { UsersService } from './users.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
 import { AppointmentsService } from '../appointments/appointments.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
 export class UsersController {
@@ -18,7 +19,23 @@ export class UsersController {
   /** Perfil do usuário logado (dados básicos, sem hash). */
   @Get('me')
   async me(@CurrentUser() user: JwtPayload) {
-    const u = await this.users.findById(user.sub);
+    return this.serialize(await this.users.findById(user.sub));
+  }
+
+  /** Edita o próprio perfil (nome/telefone). */
+  @Patch('me')
+  async updateMe(@CurrentUser() user: JwtPayload, @Body() dto: UpdateProfileDto) {
+    return this.serialize(await this.users.updateProfile(user.sub, dto));
+  }
+
+  private serialize(u: {
+    id: string;
+    nome: string;
+    email: string;
+    role: UserRole;
+    telefone: string | null;
+    tenantId: string | null;
+  }) {
     return {
       id: u.id,
       nome: u.nome,

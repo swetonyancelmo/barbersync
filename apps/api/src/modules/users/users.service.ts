@@ -21,6 +21,17 @@ export class UsersService {
     return user;
   }
 
+  /** Atualiza dados do próprio perfil (nome/telefone). */
+  async updateProfile(
+    id: string,
+    data: { nome?: string; telefone?: string },
+  ): Promise<User> {
+    const user = await this.findById(id);
+    if (data.nome !== undefined) user.nome = data.nome;
+    if (data.telefone !== undefined) user.telefone = data.telefone;
+    return this.repo.save(user);
+  }
+
   create(data: {
     nome: string;
     email: string;

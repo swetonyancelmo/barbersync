@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AppointmentStatus, LoyaltyTier } from '@barbersync/shared';
 import { useAuth } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useSelectedTenant } from '@/lib/tenant';
 import { brl, formatDateTime } from '@/lib/format';
 import { BarberAvatar, StatusBadge, TierBadge } from '@/components/ui';
@@ -24,17 +24,54 @@ interface Agendamento {
   servicos: { nome: string }[];
 }
 
-const CONTA = ['Editar perfil', 'Formas de pagamento', 'Notificações'];
+interface Perfil {
+  nome: string;
+  email: string;
+  telefone: string | null;
+}
 
 export default function PerfilPage() {
-  const { user, logout } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const { tenantId } = useSelectedTenant();
   const [prog, setProg] = useState<Progresso | null>(null);
   const [hist, setHist] = useState<Agendamento[]>([]);
 
+  // Editar perfil
+  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ nome: '', telefone: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     api<Agendamento[]>('/appointments/me').then(setHist).catch(() => setHist([]));
+    api<Perfil>('/users/me').then(setPerfil).catch(() => setPerfil(null));
   }, []);
+
+  function abrirEdicao() {
+    setForm({ nome: perfil?.nome ?? user?.nome ?? '', telefone: perfil?.telefone ?? '' });
+    setError(null);
+    setEditing(true);
+  }
+
+  async function salvar(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await api<Perfil>('/users/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ nome: form.nome, telefone: form.telefone }),
+      });
+      setPerfil(updated);
+      updateUser({ nome: updated.nome }); // reflete no header/saudações
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Falha ao salvar.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!tenantId) return;
@@ -48,8 +85,9 @@ export default function PerfilPage() {
       <header style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
         <BarberAvatar nome={user?.nome ?? '?'} size={60} />
         <div>
-          <h1 style={{ margin: 0, fontSize: 24 }}>{user?.nome}</h1>
+          <h1 style={{ margin: 0, fontSize: 24 }}>{perfil?.nome ?? user?.nome}</h1>
           <p className="muted" style={{ margin: 0, fontSize: 14 }}>{user?.email}</p>
+          {perfil?.telefone && <p className="muted mono" style={{ margin: '2px 0 0', fontSize: 13 }}>{perfil.telefone}</p>}
         </div>
       </header>
 
@@ -95,11 +133,18 @@ export default function PerfilPage() {
       {/* Menu Conta */}
       <h3 style={{ fontSize: 18, marginBottom: 10 }}>Conta</h3>
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        {CONTA.map((item) => (
-          <div key={item} style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
-            {item}
-          </div>
-        ))}
+        <div
+          role="button"
+          onClick={abrirEdicao}
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+        >
+          <span>Editar perfil</span>
+          <span className="muted" style={{ fontSize: 18 }}>›</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+          <span>Formas de pagamento</span>
+          <span className="muted mono" style={{ fontSize: 11 }}>em breve</span>
+        </div>
         <div
           role="button"
           onClick={logout}
@@ -108,6 +153,42 @@ export default function PerfilPage() {
           Sair
         </div>
       </div>
+
+      {/* Modal Editar perfil */}
+      {editing && (
+        <div
+          onClick={() => setEditing(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 60 }}
+        >
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={salvar}
+            className="card card-raised"
+            style={{ width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 14 }}
+          >
+            <h3 style={{ margin: 0, fontSize: 20 }}>Editar perfil</h3>
+            <div className="barber-rule" style={{ width: 48 }} />
+            <div>
+              <label className="label">Nome</label>
+              <input className="input" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required minLength={2} />
+            </div>
+            <div>
+              <label className="label">Telefone</label>
+              <input className="input" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(11) 90000-0000" />
+            </div>
+            <div>
+              <label className="label">E-mail</label>
+              <input className="input" value={perfil?.email ?? user?.email ?? ''} disabled style={{ opacity: 0.6, cursor: 'not-allowed' }} />
+              <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>A edição de e-mail chega junto com as notificações.</p>
+            </div>
+            {error && <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{error}</p>}
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-outline" onClick={() => setEditing(false)}>Cancelar</button>
+              <button className="btn-primary" style={{ width: 'auto' }} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

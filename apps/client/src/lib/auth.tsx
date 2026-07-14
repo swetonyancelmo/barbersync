@@ -23,6 +23,7 @@ interface AuthCtx {
     senha: string;
     telefone: string;
   }) => Promise<void>;
+  updateUser: (partial: Partial<SessionUser>) => void;
   logout: () => void;
 }
 
@@ -73,6 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [handleAuth, router],
   );
 
+  const updateUser = useCallback((partial: Partial<SessionUser>) => {
+    setUser((cur) => (cur ? { ...cur, ...partial } : cur));
+  }, []);
+
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
@@ -80,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <Ctx.Provider value={{ user, loading, login, register, logout }}>
+    <Ctx.Provider value={{ user, loading, login, register, updateUser, logout }}>
       {children}
     </Ctx.Provider>
   );
