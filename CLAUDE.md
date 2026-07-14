@@ -18,7 +18,7 @@ barbersync/
 
 **Como rodar:** `docker compose up -d db` → `npm install` → `npm run build:shared` → `cp apps/api/.env.example apps/api/.env` → `npm run seed --workspace @barbersync/api` → `npm run dev:api | dev:client | dev:admin`. Seed cria `admin@barbersync.com` e `joao@cliente.com` (senha `123456`).
 
-**Módulos do backend** (`apps/api/src/modules/`): `auth` (JWT, login + cadastro cliente/barbearia), `tenants`, `users`, `barbers`, `services`, `appointments`, `payments`, `loyalty`, `schedule`. Guards globais `JwtAuthGuard` + `RolesGuard`. A resolução de tenant vive em `common/tenant/tenant-context.ts` (`resolveTenantId`).
+**Módulos do backend** (`apps/api/src/modules/`): `auth` (JWT, login + cadastro cliente/barbearia), `tenants`, `users`, `barbers`, `services`, `appointments`, `payments`, `loyalty`, `schedule`, `notifications`. Guards globais `JwtAuthGuard` + `RolesGuard`. A resolução de tenant vive em `common/tenant/tenant-context.ts` (`resolveTenantId`).
 
 **Decisões técnicas travadas com o Swetony:**
 - API **REST** (não GraphQL).
@@ -26,7 +26,11 @@ barbersync/
 - **Cliente é global multi-tenant**: `User.tenantId` é NULL para CLIENTE (agenda em várias barbearias); BARBEIRO/ADMIN têm tenant fixo. O cliente escolhe a barbearia (`?tenantId=`), o backend valida.
 - **Disponibilidade por barbearia** (não por barbeiro): módulo `schedule` (`Expediente`) guarda dias abertos + faixas de horário (jsonb). A grade do cliente lê disso; padrão seg–sáb, domingo fechado.
 
-**Defaults aplicados (marcados no código, podem mudar):** lembrete "1h antes" = TODO sem canal; fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label.
+**Notificações (✅ implementado):** módulo `notifications` **agnóstico de canal** (`NotificationChannel` → `LogChannel` dev + `ResendChannel` e-mail via API HTTP, sem SDK). Ao **confirmar** um agendamento (`setStatus` → `CONFIRMADO`), notifica o cliente — **idempotente** (só na transição) e **fire-and-forget** (falha de envio não derruba a confirmação). Canal via env `NOTIFICATIONS_CHANNEL=log|email` (+ `RESEND_API_KEY`, `MAIL_FROM`); padrão `log`. WhatsApp e outros eventos (recusado, lembrete) encaixam na mesma interface.
+
+**Editar perfil (✅ implementado):** `PATCH /users/me` (`UpdateProfileDto`) atualiza nome/telefone; no app do cliente, "Editar perfil" abre modal e atualiza a sessão via `updateUser` no contexto de auth. E-mail é read-only por ora (edição virá com a verificação/notificações por e-mail). O item "Notificações" saiu do menu Conta (será automático).
+
+**Defaults aplicados (marcados no código, podem mudar):** lembrete "1h antes" = **ainda TODO** (a infra de notificação existe, falta um agendador/cron para disparar); fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label.
 
 **Gotchas de ambiente:** há um **Postgres nativo do Windows na 5432** → o docker-compose publica o banco em **5433** (`DB_PORT=5433`). O `apps/api/tsconfig.json` **não** mapeia `@barbersync/shared` para o source e tem `incremental:false` — não reative nenhum dos dois (senão o `nest build` emite em `dist/apps/api/...` ou pula a emissão e some o `dist/main.js`).
 
@@ -95,7 +99,7 @@ BarberSync é uma plataforma SaaS multi-tenant de agendamento para barbearias, c
 | **Escolha o barbeiro** (etapa 2/3) | lista de barbeiros com especialidade e rating; footer com total acumulado | nenhum barbeiro disponível no horário desejado |
 | **Escolha o horário** (etapa 3/3) | seletor de data (chips horizontais), grade de horários Manhã/Tarde; footer com total e "Confirmar" | horário indisponível/ocupado (não deve aparecer na grade ou aparecer desabilitado) |
 | **Confirmação** | ícone de sucesso, resumo (serviço, barbeiro, data/hora, valor), CTAs "Voltar ao início" / "Ver meu perfil" | falha ao confirmar (ex: horário ocupado no meio tempo) |
-| **Perfil** | dados do cliente, barra de progresso de fidelidade (pts atual/meta, texto "faltam X pts para Y"), histórico de agendamentos, menu Conta (Editar perfil, Formas de pagamento, Notificações, Sair) | histórico vazio (cliente novo) |
+| **Perfil** | dados do cliente, barra de progresso de fidelidade (pts atual/meta, texto "faltam X pts para Y"), histórico de agendamentos, menu Conta (**Editar perfil** ✅ funcional via modal, Formas de pagamento "em breve", Sair — item "Notificações" removido, ver §0) | histórico vazio (cliente novo) |
 
 Navegação: bottom tab bar fixa com 3 itens — **Início / Agendar / Perfil**.
 
@@ -192,6 +196,6 @@ Fidelidade
 - ~~Seleção de serviço single vs multi?~~ **✅ Multi-select** (confirmado).
 - ~~Cliente em mais de uma barbearia?~~ **✅ Sim, cliente global** (confirmado).
 - ~~Disponibilidade por barbearia ou por barbeiro?~~ **✅ Por barbearia** (confirmado; evoluir p/ por-barbeiro depois se preciso).
-- Canal do lembrete "1h antes" (push, SMS, WhatsApp, e-mail)? — **ainda aberto**, hoje é TODO sem canal.
+- Canal de notificação? **✅ e-mail primeiro** (via Resend, canal plugável) — já dispara na **confirmação** do agendamento. WhatsApp fica para depois (custo por mensagem + aprovação Meta). O **lembrete "1h antes"** ainda é TODO: a infra existe, falta o agendador/cron.
 - Barbeiro "Master" tem permissão diferente? — **default: não**, só label. Confirmar se deve mudar.
 - Confirmar com o Swetony as **faixas de fidelidade inferidas** (1pt/R$3, meta 250, Bronze/Prata/Ouro) antes de tratar como final.
