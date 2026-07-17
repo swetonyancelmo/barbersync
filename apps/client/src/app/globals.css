@@ -1,73 +1,183 @@
 /* ==========================================================================
-   BarberSync — Design Token System
-   Barbearia clássica/premium: 3 camadas de escuro + latão fosco + oxblood de
-   couro. Bodoni (display) / Hanken (corpo) / Space Mono (dados). Assinatura:
-   filete barber-pole + cards em formato de comanda.
+   BarberSync — Design Token System · tema "Azulejaria de esquina"
+   Barbearia de bairro brasileira: porcelana clara + azulejo branco com rejunte,
+   verde-esmalte estrutural, vermelho de poste de barbeiro como único acento
+   forte. Fjalla One (letreiro esmaltado) / Hanken (corpo) / Space Mono (comanda).
+   Assinatura: poste de barbeiro (filete) + cards como azulejo + comanda de papel.
+
+   Dois temas na mesma paleta:
+   - claro  = barbearia de dia (porcelana + azulejo branco)
+   - escuro = barbearia à noite (grafite quente + cerâmica escura)
+   Regra dos verdes: --pine é o verde de CHROME (barra/sidebar/plaquinha, texto
+   creme por cima — fica escuro nos dois temas). --verd é o verde de ACENTO sobre
+   superfície (preço, avatar, progresso, contorno) — clareia p/ sage no escuro.
    ========================================================================== */
 
-:root {
-  /* Paleta — 3 camadas de escuro para profundidade real */
-  --pitch: #0e0b07;      /* fundo da página */
-  --espresso: #1b1510;   /* superfície (1ª elevação) */
-  --walnut: #251c14;     /* levantado / hover (2ª elevação) */
-  --oak: #3a2e1f;        /* fio de borda */
-  --oak-soft: #2c2318;   /* borda mais discreta */
+:root, :root[data-theme='light'] {
+  /* Superfícies claras — porcelana e azulejo */
+  --porcelain: #ece9dd;
+  --tile: #fcfbf7;
+  --tile-2: #f2efe4;
+  --paper: #f3ecd9;      /* comanda */
+  --paper-2: #efe6cf;
+  --line: #d9d5c4;       /* rejunte / borda */
+  --line-soft: #e4e0d1;
 
-  /* Acentos */
-  --brass: #c89b4c;      /* latão fosco (primário, uso comedido) */
-  --brass-light: #e7c67e;
-  --oxblood: #8a3b33;    /* couro / barber-pole (secundário) */
-  --oxblood-bright: #a8483d;
+  /* Tinta / texto */
+  --ink: #26241c;
+  --slate: #6e6a5b;
 
-  /* Texto */
-  --bone: #efe7d6;
-  --smoke: #9a8e79;
+  /* Verde-esmalte — chrome (constante) e acento (adaptável) */
+  --pine: #1e3a33;
+  --pine-2: #2c554a;
+  --verd: #1e3a33;
+  --verd-2: #2c554a;
 
-  /* Status (ancorados na paleta) */
-  --ok: #7fa87f;
-  --danger: #b8503c;
+  /* Acento — poste de barbeiro */
+  --pole: #c0392b;
+  --pole-2: #a32e22;
+  --pole-bright: #cf4234;
+  --navy: #23406b;
+
+  /* Metais (fidelidade / detalhes) */
+  --brass: #a07c36;
+
+  /* Status */
+  --ok: #3c7a54;
+  --danger: #b23a2b;
 
   /* Tiers */
-  --tier-ouro: #e7c67e;
-  --tier-prata: #cfc9bd;
-  --tier-bronze: #c0845a;
+  --tier-ouro: #a5811f;
+  --tier-prata: #7f8079;
+  --tier-bronze: #9c6a2e;
 
+  /* Texto creme sobre chrome verde/vermelho */
+  --on-enamel: #f7f2e4;
+  --on-pole: #fbf5e8;
+
+  /* Textura de fundo + foco */
+  --grout-line: rgba(38, 36, 28, 0.035);
+  --tex-green: rgba(30, 58, 51, 0.05);
+  --tex-red: rgba(192, 57, 43, 0.04);
+  --focus: rgba(30, 58, 51, 0.16);
+
+  /* Sombra — 3 tiers semânticos (claros, suaves) */
+  --elev-hairline: 0 1px 0 rgba(38, 36, 28, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --elev-raised: 0 6px 16px -10px rgba(38, 36, 28, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --elev-float: 0 24px 50px -22px rgba(38, 36, 28, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+  color-scheme: light;
+}
+
+/* ---- Escuro — barbearia à noite --------------------------------------- */
+:root[data-theme='dark'] {
+  --porcelain: #14110b;   /* grafite quente (rejunte) */
+  --tile: #1f1b14;        /* cerâmica escura (card) */
+  --tile-2: #29231a;
+  --paper: #2a2416;       /* kraft envelhecido (comanda) */
+  --paper-2: #241f13;
+  --line: #3a3222;
+  --line-soft: #2c2418;
+
+  --ink: #efe7d6;
+  --slate: #a99d84;
+
+  --pine: #1f3a33;        /* chrome verde-esmalte (mantém) */
+  --pine-2: #2c554a;
+  --verd: #86baa6;        /* acento sage (clareia sobre o escuro) */
+  --verd-2: #6da491;
+
+  --pole: #d24b3b;        /* poste um pouco mais aceso */
+  --pole-2: #b23a2b;
+  --pole-bright: #e05a49;
+  --navy: #3a5a8c;
+
+  --brass: #c39a4e;
+
+  --ok: #5fa87a;
+  --danger: #e0715f;
+
+  --tier-ouro: #d9b45a;
+  --tier-prata: #c7c3b6;
+  --tier-bronze: #cf9a5e;
+
+  --grout-line: rgba(247, 242, 228, 0.028);
+  --tex-green: rgba(45, 85, 74, 0.12);
+  --tex-red: rgba(210, 75, 59, 0.07);
+  --focus: rgba(134, 186, 166, 0.24);
+
+  --elev-hairline: 0 1px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --elev-raised: 0 8px 20px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --elev-float: 0 28px 56px -22px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  color-scheme: dark;
+}
+
+/* Sem escolha explícita, segue o sistema */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --porcelain: #14110b; --tile: #1f1b14; --tile-2: #29231a;
+    --paper: #2a2416; --paper-2: #241f13; --line: #3a3222; --line-soft: #2c2418;
+    --ink: #efe7d6; --slate: #a99d84;
+    --pine: #1f3a33; --pine-2: #2c554a; --verd: #86baa6; --verd-2: #6da491;
+    --pole: #d24b3b; --pole-2: #b23a2b; --pole-bright: #e05a49; --navy: #3a5a8c;
+    --brass: #c39a4e; --ok: #5fa87a; --danger: #e0715f;
+    --tier-ouro: #d9b45a; --tier-prata: #c7c3b6; --tier-bronze: #cf9a5e;
+    --grout-line: rgba(247, 242, 228, 0.028);
+    --tex-green: rgba(45, 85, 74, 0.12); --tex-red: rgba(210, 75, 59, 0.07);
+    --focus: rgba(134, 186, 166, 0.24);
+    --elev-hairline: 0 1px 0 rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --elev-raised: 0 8px 20px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --elev-float: 0 28px 56px -22px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color-scheme: dark;
+  }
+}
+
+:root {
   /* Raio — proposital e variado */
   --r-ticket: 3px;
-  --r-input: 7px;
-  --r-card: 12px;
+  --r-input: 8px;
+  --r-card: 10px;
   --r-pill: 999px;
 
-  /* Sombra — 3 tiers semânticos */
-  --elev-hairline: inset 0 1px 0 rgba(255, 248, 232, 0.04);
-  --elev-raised: 0 2px 8px -3px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 248, 232, 0.05);
-  --elev-float: 0 20px 48px -20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 248, 232, 0.06);
-
   /* Espaçamento — escala de 4 */
-  --s1: 4px;
-  --s2: 8px;
-  --s3: 12px;
-  --s4: 16px;
-  --s5: 24px;
-  --s6: 32px;
-  --s7: 48px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
 
   /* Tipografia (variáveis vêm do next/font) */
-  --font-display: 'Bodoni Moda', Georgia, serif;
+  --font-display: 'Fjalla One', 'Arial Narrow', sans-serif;
   --font-body: 'Hanken Grotesk', system-ui, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, monospace;
 
-  /* Aliases de compatibilidade (nomes antigos → tokens novos) */
-  --bg: var(--pitch);
-  --bg-2: var(--pitch);
-  --surface: var(--espresso);
-  --surface-2: var(--walnut);
-  --border: var(--oak-soft);
-  --text: var(--bone);
-  --text-muted: var(--smoke);
-  --gold-1: var(--brass);
-  --gold-2: var(--brass-light);
-  --gold-grad: linear-gradient(180deg, var(--brass-light), var(--brass));
+  /* Filete do poste de barbeiro (adapta com --pole/--navy) */
+  --pole-stripe: repeating-linear-gradient(
+    115deg,
+    var(--pole) 0 8px,
+    #f7f2e4 8px 12px,
+    var(--navy) 12px 20px,
+    #f7f2e4 20px 24px
+  );
+
+  /* ---- Aliases de compatibilidade (nomes antigos → tokens do tema) ------- */
+  --bg: var(--porcelain);
+  --bg-2: var(--tile);
+  --surface: var(--tile);
+  --surface-2: var(--tile-2);
+  --border: var(--line);
+  --text: var(--ink);
+  --text-muted: var(--slate);
+  --bone: var(--ink);
+  --smoke: var(--slate);
+  --pitch: var(--tile);
+  --espresso: var(--tile);
+  --walnut: var(--tile-2);
+  --oak: var(--line);
+  --oak-soft: var(--line);
+  --cream: var(--paper);
+  --brass-light: var(--verd);          /* dados em destaque (preço/hora) → verde */
+  --gold-1: var(--pole);               /* seleção → vermelho */
+  --gold-2: var(--verd);               /* preço → verde */
+  --gold-grad: linear-gradient(180deg, var(--pole), var(--pole-2));
+  --oxblood: var(--pole);
   --success: var(--ok);
   --radius: var(--r-card);
   --radius-pill: var(--r-pill);
@@ -78,31 +188,33 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--pitch);
-  color: var(--bone);
+  background: var(--porcelain);
+  color: var(--ink);
   font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Textura sutil de fundo (grão fino de latão) — profundidade sem imagem externa */
+/* Rejunte de azulejo sutil + calor de esmalte — profundidade sem imagem externa */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background:
-    radial-gradient(120% 80% at 50% -10%, rgba(200, 155, 76, 0.06), transparent 60%),
-    radial-gradient(100% 60% at 50% 110%, rgba(138, 59, 51, 0.05), transparent 60%);
+  background-image:
+    radial-gradient(120% 70% at 50% -10%, var(--tex-green), transparent 55%),
+    radial-gradient(90% 50% at 50% 112%, var(--tex-red), transparent 55%),
+    repeating-linear-gradient(0deg, var(--grout-line) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(90deg, var(--grout-line) 0 1px, transparent 1px 46px);
 }
 
 h1, h2, h3, .display {
   font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  line-height: 1.05;
 }
 
 .mono {
@@ -111,62 +223,63 @@ h1, h2, h3, .display {
   letter-spacing: -0.02em;
 }
 
-a { color: var(--brass-light); text-decoration: none; }
+a { color: var(--pole); text-decoration: none; }
 input, button, select { font-family: inherit; }
-.muted { color: var(--smoke); }
+.muted { color: var(--slate); }
 
-/* ---- Assinatura: filete barber-pole ------------------------------------ */
+/* ---- Assinatura: filete do poste de barbeiro --------------------------- */
 .barber-rule {
-  height: 4px;
+  height: 5px;
   border-radius: 2px;
-  background: repeating-linear-gradient(
-    115deg,
-    var(--oxblood) 0 9px,
-    var(--bone) 9px 13px,
-    var(--brass) 13px 22px,
-    var(--bone) 22px 26px
-  );
-  opacity: 0.9;
+  background: var(--pole-stripe);
+  box-shadow: inset 0 0 0 1px rgba(38, 36, 28, 0.08);
 }
 
-/* ---- Cards ------------------------------------------------------------- */
+/* ---- Plaquinha de esmalte (chrome verde) ------------------------------- */
+.plaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: var(--pine);
+  color: var(--on-enamel);
+  border-radius: var(--r-input);
+  font-family: var(--font-display);
+  letter-spacing: 0.4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 6px -3px rgba(30, 58, 51, 0.5);
+}
+
+/* ---- Cards = azulejo --------------------------------------------------- */
 .card {
   position: relative;
-  background: var(--espresso);
-  border: 1px solid var(--oak-soft);
+  background: var(--tile);
+  border: 1px solid var(--line);
   border-radius: var(--r-card);
   padding: var(--s5);
   box-shadow: var(--elev-hairline);
 }
 .card-raised { box-shadow: var(--elev-raised); }
 
-/* Assinatura: card em formato de comanda de barbearia */
+/* Assinatura: card em formato de comanda de barbearia (papel) */
 .ticket {
   position: relative;
-  background: linear-gradient(180deg, var(--walnut), var(--espresso));
-  border: 1px solid var(--oak);
+  background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  border: 1px solid var(--line);
   border-radius: var(--r-ticket);
   box-shadow: var(--elev-raised);
   overflow: hidden;
 }
 .ticket::before {
-  /* filete barber-pole na aresta superior */
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: repeating-linear-gradient(
-    115deg,
-    var(--oxblood) 0 9px,
-    var(--bone) 9px 13px,
-    var(--brass) 13px 22px,
-    var(--bone) 22px 26px
-  );
+  height: 5px;
+  background: var(--pole-stripe);
 }
-/* Linha de picote (usar dentro do ticket para separar canhoto) */
+/* Linha de picote (separa o canhoto da comanda) */
 .ticket-perf {
   position: relative;
-  border-top: 1.5px dashed var(--oak);
+  border-top: 1.5px dashed var(--line);
   margin: var(--s3) calc(-1 * var(--s5));
 }
 .ticket-perf::before,
@@ -176,17 +289,17 @@ input, button, select { font-family: inherit; }
   top: -9px;
   width: 16px; height: 16px;
   border-radius: 50%;
-  background: var(--pitch);
-  border: 1px solid var(--oak);
+  background: var(--porcelain);
+  border: 1px solid var(--line);
 }
 .ticket-perf::before { left: -8px; }
 .ticket-perf::after { right: -8px; }
 
-/* ---- Botões ------------------------------------------------------------ */
+/* ---- Botões — esmalte -------------------------------------------------- */
 .btn-primary {
   position: relative;
-  background: linear-gradient(180deg, var(--brass-light), var(--brass));
-  color: #2a1d09;
+  background: linear-gradient(180deg, var(--pole-bright), var(--pole-2));
+  color: var(--on-pole);
   border: none;
   border-radius: var(--r-pill);
   padding: 13px 24px;
@@ -196,74 +309,86 @@ input, button, select { font-family: inherit; }
   letter-spacing: 0.2px;
   cursor: pointer;
   width: 100%;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 16px -8px rgba(200, 155, 76, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 18px -10px rgba(163, 46, 34, 0.7);
   transition: transform 0.08s ease, filter 0.15s ease;
 }
-.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-.btn-primary:not(:disabled):hover { filter: brightness(1.05); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; filter: saturate(0.6); }
+.btn-primary:not(:disabled):hover { filter: brightness(1.06); }
 .btn-primary:not(:disabled):active { transform: translateY(1px); }
 
 .btn-outline {
   background: transparent;
-  color: var(--bone);
-  border: 1px solid var(--oak);
+  color: var(--verd);
+  border: 1.5px solid var(--verd);
   border-radius: var(--r-pill);
   padding: 11px 20px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.btn-outline:hover { border-color: var(--brass); background: var(--walnut); }
+.btn-outline:hover { background: var(--pine); color: var(--on-enamel); border-color: var(--pine); }
+
+.btn-success {
+  background: var(--ok);
+  color: #f3f7ef;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 11px 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-success:hover { filter: brightness(1.05); }
 
 .btn-danger {
   background: transparent;
   color: var(--danger);
-  border: 1px solid rgba(184, 80, 60, 0.45);
+  border: 1.5px solid color-mix(in srgb, var(--danger) 50%, transparent);
   border-radius: var(--r-pill);
   padding: 10px 16px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
 }
-.btn-danger:hover { background: rgba(138, 59, 51, 0.14); }
+.btn-danger:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); }
 
 /* ---- Inputs ------------------------------------------------------------ */
 .input, select.input {
   width: 100%;
-  background: var(--pitch);
-  border: 1px solid var(--oak);
+  background: var(--tile);
+  border: 1px solid var(--line);
   border-radius: var(--r-input);
   padding: 13px 15px;
-  color: var(--bone);
+  color: var(--ink);
   font-size: 15px;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input:focus {
-  border-color: var(--brass);
-  box-shadow: 0 0 0 3px rgba(200, 155, 76, 0.14);
+  border-color: var(--verd);
+  box-shadow: 0 0 0 3px var(--focus);
 }
+.input::placeholder { color: var(--slate); opacity: 0.7; }
 .label {
   display: block;
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--smoke);
+  color: var(--slate);
   margin-bottom: var(--s2);
 }
 
-/* ---- Avatar ------------------------------------------------------------ */
+/* ---- Avatar = ficha de azulejo ---------------------------------------- */
 .avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 44px; height: 44px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, var(--walnut), var(--espresso));
-  border: 1px solid var(--oak);
-  color: var(--brass-light);
+  background: radial-gradient(circle at 30% 25%, var(--tile), var(--tile-2));
+  border: 1px solid var(--line);
+  color: var(--verd);
   font-family: var(--font-display);
-  font-weight: 700;
+  letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
@@ -281,28 +406,51 @@ input, button, select { font-family: inherit; }
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
-.badge-success { background: rgba(127, 168, 127, 0.14); color: var(--ok); }
-.badge-confirm { background: transparent; color: var(--brass-light); border: 1px solid var(--brass); }
-.badge-pending { background: rgba(154, 142, 121, 0.14); color: var(--smoke); }
-.badge-danger  { background: rgba(184, 80, 60, 0.14); color: var(--danger); }
-.badge-ouro    { background: rgba(231, 198, 126, 0.14); color: var(--tier-ouro); }
-.badge-prata   { background: rgba(207, 201, 189, 0.14); color: var(--tier-prata); }
-.badge-bronze  { background: rgba(192, 132, 90, 0.16); color: var(--tier-bronze); }
+.badge-success { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.badge-confirm { background: color-mix(in srgb, var(--verd) 14%, transparent); color: var(--verd); border: 1px solid color-mix(in srgb, var(--verd) 40%, transparent); }
+.badge-pending { background: color-mix(in srgb, var(--slate) 15%, transparent); color: var(--slate); }
+.badge-danger  { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.badge-ouro    { background: color-mix(in srgb, var(--tier-ouro) 16%, transparent); color: var(--tier-ouro); }
+.badge-prata   { background: color-mix(in srgb, var(--tier-prata) 18%, transparent); color: var(--tier-prata); }
+.badge-bronze  { background: color-mix(in srgb, var(--tier-bronze) 17%, transparent); color: var(--tier-bronze); }
 
 /* ---- Progresso --------------------------------------------------------- */
 .progress-track {
   width: 100%;
   height: 8px;
-  background: var(--pitch);
+  background: var(--tile-2);
   border-radius: var(--r-pill);
   overflow: hidden;
-  border: 1px solid var(--oak-soft);
+  border: 1px solid var(--line);
 }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--brass), var(--brass-light));
+  background: linear-gradient(90deg, var(--verd), var(--verd-2));
   border-radius: var(--r-pill);
 }
+
+/* ---- Alternador de tema (claro/escuro) -------------------------------- */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--tile);
+  color: var(--slate);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.theme-toggle:hover { color: var(--verd); border-color: var(--verd); }
+/* Variante sobre chrome verde */
+.theme-toggle.on-chrome {
+  border-color: rgba(244, 239, 224, 0.28);
+  background: transparent;
+  color: rgba(244, 239, 224, 0.82);
+}
+.theme-toggle.on-chrome:hover { color: #f7f2e4; border-color: rgba(244, 239, 224, 0.55); }
 
 /* posiciona conteúdo acima da textura de fundo */
 #app-root { position: relative; z-index: 1; }

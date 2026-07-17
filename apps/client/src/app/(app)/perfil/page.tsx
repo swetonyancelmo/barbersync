@@ -7,6 +7,7 @@ import { api, ApiError } from '@/lib/api';
 import { useSelectedTenant } from '@/lib/tenant';
 import { brl, formatDateTime } from '@/lib/format';
 import { BarberAvatar, StatusBadge, TierBadge } from '@/components/ui';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 interface Progresso {
   pontosAtuais: number;
@@ -144,6 +145,10 @@ export default function PerfilPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
           <span>Formas de pagamento</span>
           <span className="muted mono" style={{ fontSize: 11 }}>em breve</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+          <span>Tema escuro</span>
+          <ThemeToggle />
         </div>
         <div
           role="button"

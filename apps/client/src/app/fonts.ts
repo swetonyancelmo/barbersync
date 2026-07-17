@@ -1,15 +1,15 @@
-import { Bodoni_Moda, Hanken_Grotesk, Space_Mono } from 'next/font/google';
+import { Fjalla_One, Hanken_Grotesk, Space_Mono } from 'next/font/google';
 
 /**
- * Três vozes tipográficas do BarberSync (self-hosted, sem CSP):
- *  - display: Bodoni Moda (Didone de alto contraste — letreiro de grooming clássico)
- *  - corpo:   Hanken Grotesk (grotesca humanista quente)
- *  - dados:   Space Mono (mono com pegada de comanda/ticket — horas, preços, números)
+ * Três vozes tipográficas do BarberSync — tema "Azulejaria de esquina":
+ *  - display: Fjalla One (grotesca condensada sturdy — letreiro esmaltado de
+ *    barbearia de bairro, placa pintada; usada em marca, títulos e plaquinhas)
+ *  - corpo:   Hanken Grotesk (grotesca humanista quente — UI, labels, texto)
+ *  - dados:   Space Mono (mono com pegada de comanda — horas, preços, números)
  */
-export const fontDisplay = Bodoni_Moda({
+export const fontDisplay = Fjalla_One({
   subsets: ['latin'],
-  weight: ['500', '700', '900'],
-  style: ['normal', 'italic'],
+  weight: ['400'],
   variable: '--font-display',
   display: 'swap',
 });

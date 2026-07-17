@@ -7,6 +7,20 @@ const base = (size: number): React.SVGProps<SVGSVGElement> => ({
   strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const,
 });
 
+// Sol / lua — alternador de tema
+export const IconSun = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+  </svg>
+);
+
+export const IconMoon = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z" />
+  </svg>
+);
+
 export const IconCalendar = ({ size = 20, className }: P) => (
   <svg {...base(size)} className={className}>
     <rect x="4" y="5" width="16" height="16" rx="2" />

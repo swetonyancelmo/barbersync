@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { IconHome, IconScissors, IconUser } from '@/components/icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const TABS = [
   { href: '/home', label: 'Início', Icon: IconHome },
@@ -40,6 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <ThemeToggle chrome />
         </nav>
       </header>
 
@@ -68,14 +70,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           padding-bottom: 92px;
         }
         .cli-topbar { display: none; }
+        /* Barra inferior = friso de esmalte verde da barbearia */
         .cli-bottombar {
           position: fixed;
           bottom: 0; left: 50%; transform: translateX(-50%);
           width: 100%; max-width: 640px;
           display: flex;
-          background: rgba(14, 11, 7, 0.92);
-          backdrop-filter: blur(8px);
-          border-top: 1px solid var(--oak-soft);
+          background: var(--pine);
+          border-top: 3px solid var(--pole);
+          box-shadow: 0 -8px 24px -14px rgba(30, 58, 51, 0.6);
           z-index: 20;
         }
         .cli-tab {
@@ -85,44 +88,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           flex-direction: column;
           align-items: center;
           gap: 3px;
-          padding: 11px 0 15px;
-          color: var(--smoke);
+          padding: 12px 0 15px;
+          color: rgba(244, 239, 224, 0.62);
           font-size: 11px;
           font-weight: 600;
         }
-        .cli-tab.is-active { color: var(--brass-light); }
+        .cli-tab.is-active { color: #f7f2e4; }
         .cli-tab-rule {
           position: absolute;
-          top: 0;
-          width: 34px;
+          top: -3px;
+          width: 40px;
           height: 3px;
         }
 
-        /* Desktop: vira barra superior, esconde bottom bar */
+        /* Desktop: vira barra superior de esmalte, esconde bottom bar */
         @media (min-width: 900px) {
           .cli-topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 18px 24px;
-            border-bottom: 1px solid var(--oak-soft);
+            background: var(--pine);
+            border-bottom: 3px solid var(--pole);
+            padding: 16px max(24px, calc((100% - 960px) / 2));
           }
-          .cli-brand { font-size: 24px; letter-spacing: 0.5px; }
-          .cli-topnav { display: flex; gap: 6px; }
+          .cli-brand { font-size: 26px; letter-spacing: 0.6px; color: #f7f2e4; }
+          .cli-topnav { display: flex; align-items: center; gap: 4px; }
           .cli-topnav-item {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             padding: 9px 16px;
             border-radius: var(--r-pill);
-            color: var(--smoke);
+            color: rgba(244, 239, 224, 0.68);
             font-weight: 600;
             font-size: 14px;
           }
-          .cli-topnav-item:hover { color: var(--bone); background: var(--walnut); }
-          .cli-topnav-item.is-active { color: var(--brass-light); background: var(--walnut); }
+          .cli-topnav-item:hover { color: #f7f2e4; background: rgba(255, 255, 255, 0.08); }
+          .cli-topnav-item.is-active { color: #f7f2e4; background: var(--pole); }
           .cli-main { max-width: 760px; padding-bottom: 40px; padding-top: 8px; }
           .cli-bottombar { display: none; }
         }

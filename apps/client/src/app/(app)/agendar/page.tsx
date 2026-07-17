@@ -104,7 +104,7 @@ export default function AgendarPage() {
     const barbeiro = barbeiros.find((b) => b.id === selBarb);
     return (
       <div style={{ padding: '48px 24px', textAlign: 'center', maxWidth: 460, margin: '0 auto' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: '50%', border: '1.5px solid var(--brass)', color: 'var(--brass-light)', marginBottom: 8 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: '50%', border: '1.5px solid var(--ok)', color: 'var(--ok)', marginBottom: 8 }}>
           <IconCheck size={34} />
         </div>
         <h1 style={{ fontSize: 30, margin: '12px 0 8px' }}>Agendamento enviado!</h1>
@@ -174,9 +174,19 @@ export default function AgendarPage() {
                       {s.descricao ?? `${s.duracaoMin} min`}
                     </p>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'var(--gold-2)', fontWeight: 700 }}>{brl(Number(s.preco))}</div>
-                    <div style={{ fontSize: 18 }}>{on ? '☑️' : '⬜'}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div className="mono" style={{ color: 'var(--verd)', fontWeight: 700 }}>{brl(Number(s.preco))}</div>
+                    <span
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 24, height: 24, borderRadius: '50%',
+                        border: on ? 'none' : '1.5px solid var(--line)',
+                        background: on ? 'var(--pine)' : 'transparent',
+                        color: '#f7f2e4', flexShrink: 0,
+                      }}
+                    >
+                      {on && <IconCheck size={15} />}
+                    </span>
                   </div>
                 </button>
               );
@@ -209,7 +219,7 @@ export default function AgendarPage() {
                     <strong>{b.user.nome}</strong>
                     <p className="muted" style={{ margin: 0, fontSize: 13 }}>{b.especialidade ?? 'Barbeiro'}</p>
                   </div>
-                  <span className="badge badge-ouro">⭐ {Number(b.rating).toFixed(1)}</span>
+                  <span className="badge badge-ouro"><IconStar size={12} /> <span className="mono">{Number(b.rating).toFixed(1)}</span></span>
                 </button>
               );
             })}
@@ -231,8 +241,8 @@ export default function AgendarPage() {
                   style={{
                     minWidth: 58, padding: '10px 0', borderRadius: 12, cursor: 'pointer',
                     background: on ? 'var(--gold-grad)' : 'var(--surface)',
-                    color: on ? '#241a0c' : 'var(--text)',
-                    border: '1px solid var(--border)', textAlign: 'center', fontWeight: 700,
+                    color: on ? '#fbf5e8' : 'var(--text)',
+                    border: on ? '1px solid var(--pole-2)' : '1px solid var(--border)', textAlign: 'center', fontWeight: 700,
                   }}
                 >
                   <div style={{ fontSize: 11 }}>{d.toLocaleDateString('pt-BR', { weekday: 'short' })}</div>
@@ -265,8 +275,8 @@ export default function AgendarPage() {
                       cursor: slot.disponivel ? 'pointer' : 'not-allowed',
                       opacity: slot.disponivel ? 1 : 0.3,
                       background: selHora === slot.hora ? 'var(--gold-grad)' : 'var(--surface)',
-                      color: selHora === slot.hora ? '#241a0c' : 'var(--text)',
-                      border: '1px solid var(--border)',
+                      color: selHora === slot.hora ? '#fbf5e8' : 'var(--text)',
+                      border: selHora === slot.hora ? '1px solid var(--pole-2)' : '1px solid var(--border)',
                     }}
                   >
                     {slot.hora}

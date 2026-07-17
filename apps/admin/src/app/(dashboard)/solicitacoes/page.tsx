@@ -44,7 +44,7 @@ export default function SolicitacoesPage() {
       <h3 style={{ fontSize: 18 }}>Aguardando resposta</h3>
       {pendentes.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', marginBottom: 28 }}>
-          <p className="muted" style={{ margin: 0 }}>Nenhuma solicitação pendente. 🎉</p>
+          <p className="muted" style={{ margin: 0 }}>Tudo em dia — nenhuma solicitação aguardando resposta.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>

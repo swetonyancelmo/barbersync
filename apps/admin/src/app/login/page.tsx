@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { IconScissors } from '@/components/icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function LoginPage() {
   const { login, registerBarbearia } = useAuth();
@@ -35,6 +36,9 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10 }}>
+        <ThemeToggle />
+      </div>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 30 }}>
           <div style={{ display: 'inline-flex', color: 'var(--brass)', marginBottom: 6 }}>

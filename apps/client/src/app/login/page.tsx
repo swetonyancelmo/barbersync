@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { IconRazor } from '@/components/icons';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -33,6 +34,9 @@ export default function LoginPage() {
 
   return (
     <div style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', justifyContent: 'center', maxWidth: 440, margin: '0 auto', width: '100%' }}>
+      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10 }}>
+        <ThemeToggle />
+      </div>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
         <div style={{ display: 'inline-flex', color: 'var(--brass)', marginBottom: 6 }}>
           <IconRazor size={40} />
