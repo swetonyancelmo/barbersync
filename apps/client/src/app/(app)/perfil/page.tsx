@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AppointmentStatus, LoyaltyTier } from '@barbersync/shared';
+import { AppointmentStatus, LoyaltyTier, Paginated } from '@barbersync/shared';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { useSelectedTenant } from '@/lib/tenant';
@@ -36,6 +36,9 @@ export default function PerfilPage() {
   const { tenantId } = useSelectedTenant();
   const [prog, setProg] = useState<Progresso | null>(null);
   const [hist, setHist] = useState<Agendamento[]>([]);
+  const [histTotal, setHistTotal] = useState(0);
+  const [histPage, setHistPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Editar perfil
   const [perfil, setPerfil] = useState<Perfil | null>(null);
@@ -44,10 +47,33 @@ export default function PerfilPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const HIST_LIMIT = 10;
+
   useEffect(() => {
-    api<Agendamento[]>('/appointments/me').then(setHist).catch(() => setHist([]));
+    api<Paginated<Agendamento>>(`/appointments/me?page=1&limit=${HIST_LIMIT}`)
+      .then((p) => {
+        setHist(p.items);
+        setHistTotal(p.total);
+        setHistPage(1);
+      })
+      .catch(() => setHist([]));
     api<Perfil>('/users/me').then(setPerfil).catch(() => setPerfil(null));
   }, []);
+
+  async function carregarMais() {
+    setLoadingMore(true);
+    try {
+      const next = histPage + 1;
+      const p = await api<Paginated<Agendamento>>(`/appointments/me?page=${next}&limit=${HIST_LIMIT}`);
+      setHist((atual) => [...atual, ...p.items]);
+      setHistTotal(p.total);
+      setHistPage(next);
+    } catch {
+      /* mantém o que já está na tela */
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   function abrirEdicao() {
     setForm({ nome: perfil?.nome ?? user?.nome ?? '', telefone: perfil?.telefone ?? '' });
@@ -128,6 +154,18 @@ export default function PerfilPage() {
               <StatusBadge status={a.status} />
             </div>
           ))}
+          {hist.length < histTotal && (
+            <button
+              className="btn-outline"
+              onClick={carregarMais}
+              disabled={loadingMore}
+              style={{ width: '100%' }}
+            >
+              {loadingMore
+                ? 'Carregando…'
+                : `Carregar mais (${histTotal - hist.length} restantes)`}
+            </button>
+          )}
         </div>
       )}
 

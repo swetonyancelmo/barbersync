@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+// Alias obrigatório: o ScheduleModule do projeto (expediente) já usa esse nome.
+import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { buildTypeOrmOptions } from './config/typeorm.config';
@@ -15,10 +17,12 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    NestScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => buildTypeOrmOptions(config),
@@ -33,6 +37,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     LoyaltyModule,
     ScheduleModule,
     NotificationsModule,
+    ReportsModule,
   ],
   providers: [
     // JWT autentica toda rota (exceto @Public); RolesGuard aplica @Roles.

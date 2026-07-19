@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import {
   IconBell,
   IconCalendar,
+  IconChart,
   IconHours,
   IconMoney,
   IconScissors,
@@ -22,6 +23,7 @@ const MENU = [
   { href: '/solicitacoes', label: 'Solicitações', Icon: IconBell, badge: true },
   { href: '/clientes', label: 'Clientes', Icon: IconUsers },
   { href: '/financeiro', label: 'Financeiro', Icon: IconMoney },
+  { href: '/relatorios', label: 'Relatórios', Icon: IconChart },
   { href: '/servicos', label: 'Serviços', Icon: IconTag },
   { href: '/horarios', label: 'Horários', Icon: IconHours },
   { href: '/equipe', label: 'Equipe', Icon: IconScissors },

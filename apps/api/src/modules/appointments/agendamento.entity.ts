@@ -63,6 +63,10 @@ export class Agendamento {
   @Column({ name: 'duracao_total_min', type: 'int' })
   duracaoTotalMin: number;
 
+  /** Quando o lembrete "1h antes" foi enviado (null = ainda não; garante envio único). */
+  @Column({ name: 'lembrete_enviado_em', type: 'timestamptz', nullable: true })
+  lembreteEnviadoEm: Date | null;
+
   @CreateDateColumn({ name: 'criado_em' })
   criadoEm: Date;
 }

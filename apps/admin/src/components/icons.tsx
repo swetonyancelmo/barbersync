@@ -75,6 +75,14 @@ export const IconHours = ({ size = 20, className }: P) => (
   </svg>
 );
 
+// Barras de relatório
+export const IconChart = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M4 20h16" />
+    <path d="M7 20v-6M12 20V9M17 20v-9" />
+  </svg>
+);
+
 export const IconPlus = ({ size = 20, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 5v14M5 12h14" />

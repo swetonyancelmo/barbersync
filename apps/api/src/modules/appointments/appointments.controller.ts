@@ -11,6 +11,7 @@ import { AppointmentStatus, JwtPayload, UserRole } from '@barbersync/shared';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { resolveTenantId } from '../../common/tenant/tenant-context';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { TenantsService } from '../tenants/tenants.service';
 import { AppointmentsService } from './appointments.service';
 import {
@@ -47,8 +48,8 @@ export class AppointmentsController {
 
   @Roles(UserRole.CLIENTE)
   @Get('me')
-  mine(@CurrentUser() user: JwtPayload) {
-    return this.appointments.findByCliente(user.sub);
+  mine(@CurrentUser() user: JwtPayload, @Query() q: PaginationQueryDto) {
+    return this.appointments.findByCliente(user.sub, q.page, q.limit);
   }
 
   @Roles(UserRole.CLIENTE)

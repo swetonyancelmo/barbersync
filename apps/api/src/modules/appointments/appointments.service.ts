@@ -7,7 +7,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { AppointmentStatus, JwtPayload, SLOT_MINUTES, UserRole } from '@barbersync/shared';
+import {
+  AppointmentStatus,
+  JwtPayload,
+  Paginated,
+  SLOT_MINUTES,
+  UserRole,
+} from '@barbersync/shared';
 import { Agendamento } from './agendamento.entity';
 import { ServicesService } from '../services/services.service';
 import { BarbersService } from '../barbers/barbers.service';
@@ -61,7 +67,7 @@ export class AppointmentsService {
       valorTotal,
       status: AppointmentStatus.PENDENTE,
     });
-    // TODO: agendar lembrete "1h antes" — canal (push/SMS/WhatsApp/e-mail) a definir (CLAUDE.md §7/§11).
+    // Lembrete "1h antes": enviado pelo cron AppointmentReminderService (e-mail).
     return this.repo.save(agendamento);
   }
 
@@ -157,11 +163,18 @@ export class AppointmentsService {
     return new Map(rows.map((r) => [r.clienteId, r.ultima]));
   }
 
-  findByCliente(clienteId: string): Promise<Agendamento[]> {
-    return this.repo.find({
+  async findByCliente(
+    clienteId: string,
+    page: number,
+    limit: number,
+  ): Promise<Paginated<Agendamento>> {
+    const [items, total] = await this.repo.findAndCount({
       where: { clienteId },
       order: { dataHora: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+    return { items, total, page, limit };
   }
 
   async findProximoByCliente(clienteId: string): Promise<Agendamento | null> {

@@ -7,6 +7,7 @@ import { UsersService } from './users.service';
 import { LoyaltyService } from '../loyalty/loyalty.service';
 import { AppointmentsService } from '../appointments/appointments.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ClientesQueryDto } from './dto/clientes-query.dto';
 
 @Controller('users')
 export class UsersController {
@@ -52,28 +53,36 @@ export class UsersController {
    */
   @Roles(UserRole.ADMIN, UserRole.BARBEIRO)
   @Get('clientes')
-  async clientes(
-    @CurrentUser() user: JwtPayload,
-    @Query('search') search?: string,
-  ) {
+  async clientes(@CurrentUser() user: JwtPayload, @Query() q: ClientesQueryDto) {
     const tenantId = resolveTenantId(user);
-    const clientes = await this.users.findClientesByTenant(tenantId, search);
-    const ids = clientes.map((c) => c.id);
+    const { items, total } = await this.users.findClientesByTenant(
+      tenantId,
+      q.page,
+      q.limit,
+      q.search,
+    );
+    // Enriquecimento (fidelidade + última visita) só sobre a página atual.
+    const ids = items.map((c) => c.id);
     const [fidelidades, ultimasVisitas] = await Promise.all([
       this.loyalty.mapByClienteIds(tenantId, ids),
       this.appointments.mapUltimaVisita(tenantId, ids),
     ]);
 
-    return clientes.map((c) => {
-      const f = fidelidades.get(c.id);
-      return {
-        id: c.id,
-        nome: c.nome,
-        telefone: c.telefone,
-        ultimaVisita: ultimasVisitas.get(c.id) ?? null,
-        totalGasto: Number(f?.totalGastoHistorico ?? 0),
-        tier: f?.tier ?? LoyaltyTier.BRONZE,
-      };
-    });
+    return {
+      items: items.map((c) => {
+        const f = fidelidades.get(c.id);
+        return {
+          id: c.id,
+          nome: c.nome,
+          telefone: c.telefone,
+          ultimaVisita: ultimasVisitas.get(c.id) ?? null,
+          totalGasto: Number(f?.totalGastoHistorico ?? 0),
+          tier: f?.tier ?? LoyaltyTier.BRONZE,
+        };
+      }),
+      total,
+      page: q.page,
+      limit: q.limit,
+    };
   }
 }

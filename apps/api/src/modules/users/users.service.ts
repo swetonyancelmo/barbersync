@@ -49,18 +49,29 @@ export class UsersService {
   }
 
   /** Lista clientes que possuem agendamento numa barbearia (tela Clientes do admin). */
-  async findClientesByTenant(tenantId: string, search?: string): Promise<User[]> {
+  async findClientesByTenant(
+    tenantId: string,
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<{ items: User[]; total: number }> {
     const qb = this.repo
       .createQueryBuilder('u')
       .innerJoin('agendamentos', 'a', 'a.cliente_id = u.id AND a.tenant_id = :tenantId', { tenantId })
       .where('u.role = :role', { role: UserRole.CLIENTE })
-      .distinct(true);
+      .distinct(true)
+      // orderBy em coluna selecionada é obrigatório: distinct + skip/take sem
+      // ordenação estável embaralha as páginas.
+      .orderBy('u.nome', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
 
     if (search) {
       qb.andWhere('(LOWER(u.nome) LIKE :s OR u.telefone LIKE :s)', {
         s: `%${search.toLowerCase()}%`,
       });
     }
-    return qb.getMany();
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
   }
 }

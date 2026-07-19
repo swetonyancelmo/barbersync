@@ -26,11 +26,17 @@ barbersync/
 - **Cliente é global multi-tenant**: `User.tenantId` é NULL para CLIENTE (agenda em várias barbearias); BARBEIRO/ADMIN têm tenant fixo. O cliente escolhe a barbearia (`?tenantId=`), o backend valida.
 - **Disponibilidade por barbearia** (não por barbeiro): módulo `schedule` (`Expediente`) guarda dias abertos + faixas de horário (jsonb). A grade do cliente lê disso; padrão seg–sáb, domingo fechado.
 
-**Notificações (✅ implementado):** módulo `notifications` **agnóstico de canal** (`NotificationChannel` → `LogChannel` dev + `ResendChannel` e-mail via API HTTP, sem SDK). Ao **confirmar** um agendamento (`setStatus` → `CONFIRMADO`), notifica o cliente — **idempotente** (só na transição) e **fire-and-forget** (falha de envio não derruba a confirmação). Canal via env `NOTIFICATIONS_CHANNEL=log|email` (+ `RESEND_API_KEY`, `MAIL_FROM`); padrão `log`. WhatsApp e outros eventos (recusado, lembrete) encaixam na mesma interface.
+**Notificações (✅ implementado):** módulo `notifications` **agnóstico de canal** (`NotificationChannel` → `LogChannel` dev + `ResendChannel` e-mail via API HTTP, sem SDK). Ao **confirmar** um agendamento (`setStatus` → `CONFIRMADO`), notifica o cliente — **idempotente** (só na transição) e **fire-and-forget** (falha de envio não derruba a confirmação). Canal via env `NOTIFICATIONS_CHANNEL=log|email` (+ `RESEND_API_KEY`, `MAIL_FROM`); padrão `log`. WhatsApp e outros eventos (recusado) encaixam na mesma interface.
+
+**Lembrete "1h antes" (✅ implementado 2026-07-19):** cron `AppointmentReminderService` (`apps/api/src/modules/appointments/appointment-reminder.service.ts`, `@nestjs/schedule` — importado no `app.module.ts` como `NestScheduleModule` para não colidir com o `ScheduleModule` de expediente). Tick a cada 5min varre `CONFIRMADO` com `dataHora` em `[now, now+60min]` e `lembrete_enviado_em IS NULL`; **claim atômico** (`UPDATE ... WHERE lembrete_enviado_em IS NULL`) antes de enviar → at-most-once mesmo com múltiplas instâncias. Template `appointment-reminder.template.ts` + `notifyAppointmentReminder` no mesmo padrão do confirmado.
+
+**Relatórios (✅ implementado 2026-07-19):** aba **Relatórios** no admin (`/relatorios`) + módulo `reports` no backend. `GET /reports/summary?periodo=dia|semana|mes&data=YYYY-MM-DD` (ADMIN/BARBEIRO) retorna `ReportSummary` (`@barbersync/shared`): KPIs (recebido por `pago_em`, atendimentos concluídos por `data_hora` — eixos diferentes de propósito), série diária, quebra por barbeiro, top 5 clientes (visitas+gasto+tier) e top 5 serviços (via `agendamento_servicos`; receita **aproximada** pelo preço atual — não há snapshot por serviço). Agrupamento por dia usa `AT TIME ZONE` com env `REPORTS_TIMEZONE` (default `America/Sao_Paulo`; o Postgres do docker é UTC). **Export PDF**: `GET /reports/summary/pdf` (pdfkit, `reports-pdf.service.ts`, reusa o mesmo `summary()` → paridade tela↔PDF); front baixa via `apiDownload` (`apps/admin/src/lib/api.ts`, fetch+blob por causa do Bearer). UI: pills Dia/Semana/Mês + ◀ ▶ + Hoje, 3 KPIs, gráfico de barras SVG/CSS sem lib (só semana/mês) e 3 tabelas.
+
+**Paginação (✅ implementado 2026-07-19):** contrato `Paginated<T>` em `@barbersync/shared` + `PaginationQueryDto` (`apps/api/src/common/dto/pagination-query.dto.ts`, page/limit com default 1/20, max 100). Aplicada em `GET /appointments/me` (histórico — front cliente usa botão "Carregar mais", limit 10) e `GET /users/clientes` (tabela do admin com paginador numérico, limit 20; `orderBy u.nome` obrigatório para páginas estáveis com `distinct`). Esses dois endpoints agora retornam `{items,total,page,limit}` (breaking para consumidores antigos).
 
 **Editar perfil (✅ implementado):** `PATCH /users/me` (`UpdateProfileDto`) atualiza nome/telefone; no app do cliente, "Editar perfil" abre modal e atualiza a sessão via `updateUser` no contexto de auth. E-mail é read-only por ora (edição virá com a verificação/notificações por e-mail). O item "Notificações" saiu do menu Conta (será automático).
 
-**Defaults aplicados (marcados no código, podem mudar):** lembrete "1h antes" = **ainda TODO** (a infra de notificação existe, falta um agendador/cron para disparar); fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label.
+**Defaults aplicados (marcados no código, podem mudar):** fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label; lembrete "1h antes" com tick de 5min (cliente recebe entre ~55–60min antes).
 
 **Gotchas de ambiente:** há um **Postgres nativo do Windows na 5432** → o docker-compose publica o banco em **5433** (`DB_PORT=5433`). O `apps/api/tsconfig.json` **não** mapeia `@barbersync/shared` para o source e tem `incremental:false` — não reative nenhum dos dois (senão o `nest build` emite em `dist/apps/api/...` ou pula a emissão e some o `dist/main.js`).
 
@@ -141,7 +147,7 @@ Com base nos valores visíveis nos prints, a regra inferida é:
 
 **Status de agendamento:** `Pendente` → `Confirmado` → `Concluído` (ou `Recusado`, que sai do fluxo). Toda solicitação de cliente entra como `Pendente` até o barbeiro confirmar ou recusar em "Solicitações".
 
-**Lembrete de agendamento:** a tela de confirmação do cliente promete "lembrete 1h antes do horário" — mecanismo de notificação (push/SMS/e-mail) ainda não definido; deixar como TODO explícito, não implementar silenciosamente com uma escolha arbitrária.
+**Lembrete de agendamento:** ✅ implementado por e-mail via cron (ver §0 — `AppointmentReminderService`).
 
 ## 8. Modelo de dados
 
@@ -199,6 +205,6 @@ Fidelidade
 - ~~Seleção de serviço single vs multi?~~ **✅ Multi-select** (confirmado).
 - ~~Cliente em mais de uma barbearia?~~ **✅ Sim, cliente global** (confirmado).
 - ~~Disponibilidade por barbearia ou por barbeiro?~~ **✅ Por barbearia** (confirmado; evoluir p/ por-barbeiro depois se preciso).
-- Canal de notificação? **✅ e-mail primeiro** (via Resend, canal plugável) — já dispara na **confirmação** do agendamento. WhatsApp fica para depois (custo por mensagem + aprovação Meta). O **lembrete "1h antes"** ainda é TODO: a infra existe, falta o agendador/cron.
+- Canal de notificação? **✅ e-mail primeiro** (via Resend, canal plugável) — dispara na **confirmação** e no **lembrete "1h antes"** (cron ✅). WhatsApp fica para depois (custo por mensagem + aprovação Meta).
 - Barbeiro "Master" tem permissão diferente? — **default: não**, só label. Confirmar se deve mudar.
 - Confirmar com o Swetony as **faixas de fidelidade inferidas** (1pt/R$3, meta 250, Bronze/Prata/Ouro) antes de tratar como final.

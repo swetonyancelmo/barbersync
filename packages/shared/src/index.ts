@@ -139,3 +139,43 @@ export interface AuthResponse {
     tenantId: string | null;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Paginação
+// ---------------------------------------------------------------------------
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// ---------------------------------------------------------------------------
+// Relatórios (aba Relatórios do admin + export PDF)
+// ---------------------------------------------------------------------------
+
+export type ReportPeriodo = 'dia' | 'semana' | 'mes';
+
+export interface ReportSummary {
+  periodo: { tipo: ReportPeriodo; inicio: string; fim: string };
+  kpis: {
+    /** Soma dos pagamentos registrados no período (eixo: pago_em). */
+    recebido: number;
+    /** Agendamentos CONCLUIDO no período (eixo: data_hora). */
+    atendimentosConcluidos: number;
+    ticketMedio: number;
+  };
+  /** Um ponto por dia do período, dias sem venda entram com 0. */
+  serie: { dia: string; recebido: number; atendimentos: number }[];
+  porBarbeiro: { barbeiroId: string; nome: string; atendimentos: number; recebido: number }[];
+  topClientes: {
+    clienteId: string;
+    nome: string;
+    atendimentos: number;
+    totalGasto: number;
+    tier: LoyaltyTier;
+  }[];
+  /** receitaAprox usa o preço ATUAL do catálogo (não há snapshot por serviço). */
+  topServicos: { servicoId: string; nome: string; vezes: number; receitaAprox: number }[];
+}

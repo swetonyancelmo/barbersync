@@ -7,6 +7,10 @@ import {
   AppointmentConfirmedData,
   appointmentConfirmedMessage,
 } from './templates/appointment-confirmed.template';
+import {
+  AppointmentReminderData,
+  appointmentReminderMessage,
+} from './templates/appointment-reminder.template';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit {
@@ -45,6 +49,20 @@ export class NotificationsService implements OnModuleInit {
     } catch (err) {
       this.logger.error(
         `Falha ao notificar confirmação para ${data.clienteEmail}: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  /**
+   * Lembrete "1h antes" do horário. Mesmo contrato do confirmado: fire-and-forget,
+   * nunca lança — uma falha de envio não pode derrubar o cron.
+   */
+  async notifyAppointmentReminder(data: AppointmentReminderData): Promise<void> {
+    try {
+      await this.channel.send(appointmentReminderMessage(data));
+    } catch (err) {
+      this.logger.error(
+        `Falha ao enviar lembrete para ${data.clienteEmail}: ${(err as Error).message}`,
       );
     }
   }
