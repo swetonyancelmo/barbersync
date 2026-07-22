@@ -70,11 +70,11 @@ export default function HorariosPage() {
             {d.aberto && (
               <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {d.blocos.map((b, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input className="input mono" type="time" value={b.inicio} onChange={(e) => updateBloco(d.diaSemana, i, 'inicio', e.target.value)} style={{ maxWidth: 130 }} />
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <input className="input mono" type="time" value={b.inicio} onChange={(e) => updateBloco(d.diaSemana, i, 'inicio', e.target.value)} style={{ flex: '1 1 120px', minWidth: 0, maxWidth: 130 }} />
                     <span className="muted">até</span>
-                    <input className="input mono" type="time" value={b.fim} onChange={(e) => updateBloco(d.diaSemana, i, 'fim', e.target.value)} style={{ maxWidth: 130 }} />
-                    <button className="btn-danger" style={{ padding: '6px 12px', fontSize: 13 }} onClick={() => removeBloco(d.diaSemana, i)}>Remover</button>
+                    <input className="input mono" type="time" value={b.fim} onChange={(e) => updateBloco(d.diaSemana, i, 'fim', e.target.value)} style={{ flex: '1 1 120px', minWidth: 0, maxWidth: 130 }} />
+                    <button className="btn-danger" style={{ padding: '6px 12px', fontSize: 13, flexShrink: 0, marginLeft: 'auto' }} onClick={() => removeBloco(d.diaSemana, i)}>Remover</button>
                   </div>
                 ))}
                 <button className="btn-outline" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13 }} onClick={() => addBloco(d.diaSemana)}>

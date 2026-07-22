@@ -89,6 +89,19 @@ export const IconPlus = ({ size = 20, className }: P) => (
   </svg>
 );
 
+// Menu hambúrguer / fechar (drawer mobile)
+export const IconMenu = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
+
+export const IconClose = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 export const IconStar = ({ size = 14, className }: P) => (
   <svg {...base(size)} className={className}>
     <path d="M12 4l2.3 4.9 5.2.7-3.8 3.6 1 5.2-4.7-2.6-4.7 2.6 1-5.2L4.5 9.6l5.2-.7z" />

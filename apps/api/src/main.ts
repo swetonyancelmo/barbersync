@@ -19,11 +19,18 @@ async function bootstrap() {
     }),
   );
 
+  // CLIENT_ORIGIN/ADMIN_ORIGIN aceitam lista separada por vírgula
+  // (ex.: localhost + IP da LAN para testar no celular em dev).
+  const origins = [
+    config.get<string>('CLIENT_ORIGIN', 'http://localhost:3000'),
+    config.get<string>('ADMIN_ORIGIN', 'http://localhost:3001'),
+  ]
+    .flatMap((v) => v.split(','))
+    .map((v) => v.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: [
-      config.get<string>('CLIENT_ORIGIN', 'http://localhost:3000'),
-      config.get<string>('ADMIN_ORIGIN', 'http://localhost:3001'),
-    ],
+    origin: origins,
     credentials: true,
   });
 
