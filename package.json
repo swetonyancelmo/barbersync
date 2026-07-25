@@ -12,6 +12,7 @@
     "dev:api": "npm run start:dev --workspace @barbersync/api",
     "dev:client": "npm run dev --workspace @barbersync/client",
     "dev:admin": "npm run dev --workspace @barbersync/admin",
+    "dev:site": "npm run dev --workspace @barbersync/site",
     "build": "npm run build --workspaces --if-present"
   },
   "engines": {

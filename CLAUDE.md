@@ -2,7 +2,7 @@
 
 Este arquivo é a fonte de verdade para qualquer sessão do Claude Code trabalhando no BarberSync. O design abaixo foi extraído de um protótipo completo (18 telas) feito no Claude Design — cobre o app do cliente e o painel do barbeiro (web + mobile responsivo).
 
-> **⚡ Estado atual (atualizado 2026-07-03):** o projeto **já está implementado e funcional** — leia a seção **§0** antes de qualquer coisa. As seções seguintes (design, telas, regras) descrevem a intenção original; onde a implementação divergiu ou decidiu algo, a §0 e as notas inline "✅ implementado" mandam.
+> **⚡ Estado atual (atualizado 2026-07-25):** o projeto **já está implementado e funcional** — leia a seção **§0** antes de qualquer coisa. As seções seguintes (design, telas, regras) descrevem a intenção original; onde a implementação divergiu ou decidiu algo, a §0 e as notas inline "✅ implementado" mandam.
 
 ## 0. Estado atual da implementação
 
@@ -11,12 +11,13 @@ Este arquivo é a fonte de verdade para qualquer sessão do Claude Code trabalha
 ```
 barbersync/
 ├── apps/api        NestJS 11 + TypeORM + PostgreSQL   (porta 3333, prefixo /api)
-├── apps/client     Next.js 14 — app do cliente         (porta 3000, mobile-first + responsivo desktop)
+├── apps/client     Next.js 14 — app do cliente         (porta 3000, mobile-first + responsivo desktop, PWA)
 ├── apps/admin      Next.js 14 — painel admin           (porta 3001, desktop-first + responsivo mobile)
+├── apps/site       Next.js 14 — landing page           (porta 3002, estática, sem API)
 └── packages/shared enums, tipos e regras compartilhadas (@barbersync/shared)
 ```
 
-**Como rodar:** `docker compose up -d db` → `npm install` → `npm run build:shared` → `cp apps/api/.env.example apps/api/.env` → `npm run seed --workspace @barbersync/api` → `npm run dev:api | dev:client | dev:admin`. Seed cria `admin@barbersync.com` e `joao@cliente.com` (senha `123456`).
+**Como rodar:** `docker compose up -d db` → `npm install` → `npm run build:shared` → `cp apps/api/.env.example apps/api/.env` → `npm run seed --workspace @barbersync/api` → `npm run dev:api | dev:client | dev:admin | dev:site`. Seed cria `admin@barbersync.com` e `joao@cliente.com` (senha `123456`).
 
 **Módulos do backend** (`apps/api/src/modules/`): `auth` (JWT, login + cadastro cliente/barbearia), `tenants`, `users`, `barbers`, `services`, `appointments`, `payments`, `loyalty`, `schedule`, `notifications`. Guards globais `JwtAuthGuard` + `RolesGuard`. A resolução de tenant vive em `common/tenant/tenant-context.ts` (`resolveTenantId`).
 
@@ -35,6 +36,14 @@ barbersync/
 **Paginação (✅ implementado 2026-07-19):** contrato `Paginated<T>` em `@barbersync/shared` + `PaginationQueryDto` (`apps/api/src/common/dto/pagination-query.dto.ts`, page/limit com default 1/20, max 100). Aplicada em `GET /appointments/me` (histórico — front cliente usa botão "Carregar mais", limit 10) e `GET /users/clientes` (tabela do admin com paginador numérico, limit 20; `orderBy u.nome` obrigatório para páginas estáveis com `distinct`). Esses dois endpoints agora retornam `{items,total,page,limit}` (breaking para consumidores antigos).
 
 **Editar perfil (✅ implementado):** `PATCH /users/me` (`UpdateProfileDto`) atualiza nome/telefone; no app do cliente, "Editar perfil" abre modal e atualiza a sessão via `updateUser` no contexto de auth. E-mail é read-only por ora (edição virá com a verificação/notificações por e-mail). O item "Notificações" saiu do menu Conta (será automático).
+
+**Landing page (✅ implementado 2026-07-25):** app **`apps/site`** (Next.js, porta 3002) — site institucional **estático** para donos de barbearia (não consome a API). Mesmo design system "Azulejaria" (tokens espelhados em `apps/site/src/app/globals.css` — **manter em sincronia** com client/admin), fontes/ícones/theme-toggle próprios. Seções: nav, hero com comanda ilustrativa, recursos (6), como funciona (3 passos), destaque do app do cliente, FAQ nativo (`<details>`) e CTA final. **Sem tabela de preços** (não definida — a confirmar). CTA "Cadastre sua barbearia" aponta para o admin via **`NEXT_PUBLIC_ADMIN_URL`** (dev: `localhost:3001`; prod: domínio do painel) com `?cadastro=1` → o login do admin **abre direto no modo cadastro** (suporte adicionado em `apps/admin/src/app/login/page.tsx`).
+
+**PWA — app do cliente (✅ implementado 2026-07-25):** `apps/client` instalável. `src/app/manifest.ts` (manifest, cores do tema, ícones + maskable em `public/icons/` gerados da tesoura), `public/sw.js` (service worker **conservador**: navegação rede-primeiro, estáticos cache-primeiro, **API nunca cacheada** — app autenticado), `public/offline.html`, `src/components/pwa-register.tsx`. **Gotchas:** o SW **só registra em produção** (em dev serviria assets velhos do HMR — testar com `build` + `next start`); instalação exige **contexto seguro** (`https://` ou `localhost` — IP de LAN é "inseguro" p/ o navegador); `viewport-fit=cover` + `env(safe-area-inset-*)` na bottom nav do cliente.
+
+**Admin mobile (✅ 2026-07-25):** a navegação inferior (8 abas, estourava no celular) virou **menu drawer** (hambúrguer) em `apps/admin/src/app/(dashboard)/layout.tsx` — reusa o visual da sidebar; pontinho vermelho no botão quando há pendentes. A linha de faixa em **Horários** ganhou `flex-wrap` (o botão "Remover" não vaza mais).
+
+**CORS multi-origem (✅ 2026-07-25):** `apps/api/src/main.ts` monta a allowlist de `CORS_ORIGINS` (prod, lista por vírgula) + `CLIENT_ORIGIN`/`ADMIN_ORIGIN` (dev, também aceitam lista — ex.: localhost + IP da LAN p/ testar no celular). Usa callback (deixa passar requisições sem header `Origin`, ex.: health check) e **nunca** `origin:'*'` (a API responde com `credentials:true`). Escuta em `0.0.0.0`.
 
 **Defaults aplicados (marcados no código, podem mudar):** fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label; lembrete "1h antes" com tick de 5min (cliente recebe entre ~55–60min antes).
 
@@ -66,7 +75,7 @@ BarberSync é uma plataforma SaaS multi-tenant de agendamento para barbearias, c
 
 ## 4. Design system
 
-> **✅ Redesenhado (2026-07-17) — tema "Azulejaria de esquina".** O visual anterior (escuro premium: latão/oxblood/Bodoni) caía num dos clichês "cara de IA" (fundo quase-preto + acento dourado em gradiente). Foi substituído por uma identidade ancorada na **barbearia de bairro brasileira**. O sistema de tokens real está em `apps/client/src/app/globals.css` e `apps/admin/src/app/globals.css` (com bloco de aliases mapeando nomes antigos → novos: `--gold-1`→`--pole`, `--brass-light`→`--pine`, `--surface`→`--tile` etc., para as telas re-skinnarem sem reescrita). Resumo do que vale hoje:
+> **✅ Redesenhado (2026-07-17) — tema "Azulejaria de esquina".** O visual anterior (escuro premium: latão/oxblood/Bodoni) caía num dos clichês "cara de IA" (fundo quase-preto + acento dourado em gradiente). Foi substituído por uma identidade ancorada na **barbearia de bairro brasileira**. O sistema de tokens real está em `apps/client/src/app/globals.css`, `apps/admin/src/app/globals.css` e `apps/site/src/app/globals.css` (este último é um **espelho** dos tokens — manter em sincronia) (com bloco de aliases mapeando nomes antigos → novos: `--gold-1`→`--pole`, `--brass-light`→`--pine`, `--surface`→`--tile` etc., para as telas re-skinnarem sem reescrita). Resumo do que vale hoje:
 > - **Tema CLARO — porcelana + azulejo + verde-esmalte + vermelho de poste.** Superfícies: `--porcelain #ECE9DD` (fundo, com rejunte sutil) → `--tile #FCFBF7` (azulejo/card) → `--tile-2 #F2EFE4` (hover), `--cream #F3ECD9` (papel de comanda), rejunte/borda `--line #D9D5C4`. Estrutural: `--pine #1E3A33` (verde-esmalte — chrome/sidebar/nav/plaquinhas). Acento **único e comedido**: `--pole #C0392B` (vermelho de poste — CTA/seleção/aba ativa); `--navy` só no filete do poste. Texto `--ink #26241C` / `--slate #6E6A5B`.
 > - **Fontes via `next/font/google`:** `Fjalla One` (display/marca — grotesca condensada de letreiro esmaltado; **substituiu Bodoni**), `Hanken Grotesk` (corpo), `Space Mono` (dados — horas, preços, KPIs, numerais de tabela). Classes: `.display`, `.mono`.
 > - **Elementos de assinatura:** `.barber-rule` (filete do **poste de barbeiro** vermelho/creme/azul — aba ativa, stepper, sob títulos), `.ticket`/`.ticket-perf` (comanda de papel com picote — próximo agendamento, confirmação) e `.plaque` (plaquinha de esmalte verde). Chrome (nav do cliente, sidebar do admin) = superfície verde-esmalte com marca em creme e detalhe de poste vermelho.
