@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { IconScissors } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -16,6 +16,12 @@ export default function LoginPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Abre direto em "cadastro" quando vindo da landing (?cadastro=1).
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('cadastro') === '1') setMode('signup');
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
