@@ -126,20 +126,40 @@ e `src/components/pwa-register.tsx` (registro).
 
 ## Deploy / Infra
 
-Nada de infra de produção provisionada ainda — só o Postgres local via Docker.
-Arquitetura-alvo sugerida (a confirmar):
+O passo a passo dos dashboards fica num runbook local (`DEPLOY.md`, **fora do
+versionamento**). O que está no repo é a configuração que os provedores leem:
 
 | Componente | Onde | Observação |
 |---|---|---|
-| API (NestJS) | Container (Fly.io / Railway / Render / ECS) | stateless; escala horizontal. Escuta em `0.0.0.0` |
-| Postgres | Serviço gerenciado (Neon, Supabase, RDS) | trocar `DB_SYNC=false` + migrations |
+| API (NestJS) | Render — Blueprint [`render.yaml`](render.yaml) | free tier hiberna após ~15min; escuta em `0.0.0.0`; migrations rodam no start |
+| Postgres | Neon (free) | via `DATABASE_URL` + `DB_SSL=true`; `DB_SYNC=false` |
 | site (landing) | Vercel — Root Directory `apps/site` | estática; não precisa da API. `NEXT_PUBLIC_ADMIN_URL` → domínio do painel |
-| client + admin | Vercel (dois projetos) ou containers | Root Directory por app; apontam `NEXT_PUBLIC_API_URL` p/ a API |
-| Segredos | Secret manager / env do provedor | `JWT_SECRET`, credenciais do banco, `RESEND_API_KEY` |
+| client + admin | Vercel (dois projetos) | Root Directory por app; apontam `NEXT_PUBLIC_API_URL` p/ a API |
+| Segredos | env do provedor (`sync: false` no `render.yaml`) | `JWT_SECRET`, `DATABASE_URL`, `RESEND_API_KEY` |
+
+**Health check:** `GET /api/health` (público, não toca no banco de propósito —
+uma Neon lenta não deve derrubar o deploy).
 
 **CORS em produção:** a API aceita `CORS_ORIGINS` (lista separada por vírgula com as
 URLs dos fronts na Vercel). Em dev, `CLIENT_ORIGIN`/`ADMIN_ORIGIN` continuam valendo.
 Nunca use `origin:'*'` — a API responde com `credentials:true`.
 
-> ⚠️ `synchronize` (DB_SYNC) só em dev. Antes de produção: gerar migrations
-> TypeORM e desligar o sync.
+**Schema:** produção usa **migrations** (`npm run migration:run`); o
+`synchronize` é forçado a `false` quando `NODE_ENV=production`, independente do
+`DB_SYNC`. Em dev, `DB_SYNC=true` continua valendo.
+
+Scripts de migration (workspace `@barbersync/api`):
+
+| Script | O que faz |
+|---|---|
+| `npm run migration:generate -- src/database/migrations/Nome` | gera migration pelo diff entities ↔ banco |
+| `npm run migration:run` | aplica as pendentes (ts-node, dev) |
+| `npm run migration:revert` | desfaz a última |
+| `npm run migration:show` | lista aplicadas/pendentes |
+| `npm run migration:run:prod` | aplica sobre `dist/` (roda no start em produção) |
+
+> Para gerar uma migration nova sem um banco "na versão anterior" à mão, use um
+> banco de rascunho: `docker exec barbersync-db psql -U postgres -c "CREATE
+> DATABASE barbersync_mig;"`, rode `DB_NAME=barbersync_mig DB_SYNC=false npm run
+> migration:run` (sobe até a última) e só então o `migration:generate`. Confira
+> depois que um segundo `generate` diz *"No changes in database schema"*.

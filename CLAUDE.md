@@ -47,11 +47,20 @@ barbersync/
 
 **Defaults aplicados (marcados no código, podem mudar):** fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label; lembrete "1h antes" com tick de 5min (cliente recebe entre ~55–60min antes).
 
+**Deploy / produção (✅ preparado 2026-07-25):** alvo **free tier, custo zero** — Postgres na **Neon**, API no **Render** (Blueprint `render.yaml` na raiz), fronts na **Vercel** (`vercel.json` por app, Root Directory `apps/<app>`). O passo a passo dos dashboards e a tabela completa de env vars vivem em **`DEPLOY.md`**, que é **local e não versionado** (está no `.gitignore`) — se você não o vê no working tree, peça ao Swetony antes de assumir qualquer coisa sobre a infra. Pontos que mudaram no código:
+- **Migrations TypeORM** (não depende mais de `DB_SYNC`): builder único de conexão em `apps/api/src/config/data-source-options.ts` (usado pelo runtime, pela CLI e pelo seed), DataSource de CLI em `src/database/data-source.ts`, baseline em `src/database/migrations/1784988399933-InitialSchema.ts` (gerada contra banco vazio; inclui `CREATE EXTENSION uuid-ossp`, que o synchronize criava implicitamente). Scripts: `migration:generate|run|revert|show` (ts-node) e `migration:run:prod` (sobre `dist/`, roda no start do Render — `preDeployCommand` é plano pago).
+- `synchronize` é **sempre false** quando `NODE_ENV=production`, mesmo com `DB_SYNC=true`. Dev não mudou.
+- **`DATABASE_URL`** tem precedência sobre `DB_HOST/PORT/...`; `DB_SSL` (auto-liga quando a URL não é localhost, a Neon exige TLS).
+- **CORS**: `CORS_ORIGINS` (lista por vírgula) somada a `CLIENT_ORIGIN`/`ADMIN_ORIGIN`; callback que aceita requisição sem `Origin` (health check) e recusa com `false` em vez de lançar (lançar virava 500 no log).
+- **`GET /api/health`** público (`modules/health/`), sem consultar o banco — é o `healthCheckPath` do Render.
+- `app.listen(port, '0.0.0.0')`.
+- **Gotcha do build no Render/Vercel:** com `NODE_ENV=production` o `npm ci` omite devDependencies e o build morre sem `@nestjs/cli`/`typescript` → todos os `installCommand`/`buildCommand` usam **`npm ci --include=dev`**.
+
 **Gotchas de ambiente:** há um **Postgres nativo do Windows na 5432** → o docker-compose publica o banco em **5433** (`DB_PORT=5433`). O `apps/api/tsconfig.json` **não** mapeia `@barbersync/shared` para o source e tem `incremental:false` — não reative nenhum dos dois (senão o `nest build` emite em `dist/apps/api/...` ou pula a emissão e some o `dist/main.js`).
 
 **Skills do projeto** (`.claude/skills/`): `nestjs-module` (padrão de módulo backend + tenant), `barbersync-run-verify` (rodar/seed/e2e + gotchas de ambiente), `barbersync-ui` (design system dos fronts), `notification-channel` (adicionar canal/evento de notificação). Use-as ao mexer nas áreas correspondentes.
 
-**Pendências conhecidas:** sem migrations TypeORM (usa `DB_SYNC=true` em dev); design real do Claude Design não foi importado (MCP pediu consentimento em sessão não-interativa — tokens vieram desta doc + refino visual da §4); infra de produção não provisionada (alvo sugerido no README).
+**Pendências conhecidas:** design real do Claude Design não foi importado (MCP pediu consentimento em sessão não-interativa — tokens vieram desta doc + refino visual da §4); os dashboards de produção (Neon/Render/Vercel) ainda **não foram provisionados** — a config está no repo, o passo manual é do Swetony (runbook local `DEPLOY.md`).
 
 ## 1. Visão geral
 

@@ -1,20 +1,14 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { buildDataSourceOptions } from './data-source-options';
 
 /**
- * Configuração do TypeORM/PostgreSQL. As entidades são carregadas por glob para
- * evitar imports circulares. `synchronize` só deve ficar ligado em dev (DB_SYNC).
+ * Configuração do TypeORM/PostgreSQL para o runtime do Nest. Delega tudo para
+ * buildDataSourceOptions (mesmo builder da CLI de migrations e do seed) —
+ * ver comentários lá sobre DATABASE_URL, SSL e synchronize.
  */
-export function buildTypeOrmOptions(config: ConfigService): TypeOrmModuleOptions {
-  return {
-    type: 'postgres',
-    host: config.get<string>('DB_HOST', 'localhost'),
-    port: config.get<number>('DB_PORT', 5432),
-    username: config.get<string>('DB_USER', 'postgres'),
-    password: config.get<string>('DB_PASSWORD', 'postgres'),
-    database: config.get<string>('DB_NAME', 'barbersync'),
-    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: config.get<string>('DB_SYNC', 'false') === 'true',
-    logging: false,
-  };
+export function buildTypeOrmOptions(
+  config: ConfigService,
+): TypeOrmModuleOptions {
+  return buildDataSourceOptions((key) => config.get<string>(key));
 }

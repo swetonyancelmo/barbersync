@@ -1,0 +1,66 @@
+# Render Blueprint — API do BarberSync (free tier, sem custo).
+#
+# O banco NÃO está declarado aqui de propósito: o Postgres free do Render expira
+# em 30 dias, então usamos a Neon (free, sem expiração) e passamos a connection
+# string em DATABASE_URL. Ver DEPLOY.md.
+#
+# Monorepo: o serviço roda com a RAIZ do repo como diretório de trabalho (sem
+# rootDir), porque o `npm ci` precisa da raiz para resolver os workspaces e o
+# @barbersync/shared tem que ser buildado ANTES da API.
+services:
+  - type: web
+    name: barbersync-api
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+
+    # --include=dev é obrigatório: com NODE_ENV=production o npm omitiria as
+    # devDependencies e o build morreria sem @nestjs/cli e typescript.
+    buildCommand: npm ci --include=dev && npm run build:shared && npm run build --workspace @barbersync/api
+    # start:render roda `migration:run:prod` (typeorm sobre o dist, sem ts-node)
+    # antes de subir o processo. Idempotente: em restart não aplica nada.
+    # (preDeployCommand do Render é recurso de plano pago — daí a migration no start.)
+    startCommand: npm run start:render --workspace @barbersync/api
+
+    healthCheckPath: /api/health
+
+    envVars:
+      # ---- Fixos (não são segredo) ----
+      - key: NODE_VERSION
+        value: '20'
+      - key: NODE_ENV
+        value: production
+      # Schema em produção é responsabilidade das migrations. O código também
+      # ignora DB_SYNC quando NODE_ENV=production, isto aqui é cinto e suspensório.
+      - key: DB_SYNC
+        value: 'false'
+      # A Neon exige TLS.
+      - key: DB_SSL
+        value: 'true'
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: APP_NAME
+        value: BarberSync
+      - key: REPORTS_TIMEZONE
+        value: America/Sao_Paulo
+
+      # ---- Preencher no dashboard (sync: false = Render pergunta / não versiona) ----
+      # Connection string da Neon (postgresql://...?sslmode=require)
+      - key: DATABASE_URL
+        sync: false
+      # Segredo de assinatura do JWT — gere um valor longo e aleatório
+      - key: JWT_SECRET
+        sync: false
+      # URLs dos dois fronts na Vercel, separadas por vírgula, SEM barra no fim
+      - key: CORS_ORIGINS
+        sync: false
+      # 'log' (só loga, recomendado p/ validar) ou 'email' (envia via Resend)
+      - key: NOTIFICATIONS_CHANNEL
+        sync: false
+      # Só necessários com NOTIFICATIONS_CHANNEL=email
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false

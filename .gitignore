@@ -9,6 +9,9 @@ coverage/
 .env.local
 .env.*.local
 
+# Runbook de deploy — fica só na máquina (descreve a infra e a ordem dos passos)
+DEPLOY.md
+
 # logs
 *.log
 npm-debug.log*

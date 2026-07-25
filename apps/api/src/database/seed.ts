@@ -2,13 +2,19 @@
  * Seed de desenvolvimento. Cria uma barbearia demo com admin, barbeiros,
  * serviços, um cliente e alguns agendamentos/pagamentos — o suficiente para
  * exercitar os dois fronts. Rode com: npm run seed --workspace @barbersync/api
- * (requer o Postgres no ar e DB_SYNC=true na primeira execução).
+ *
+ * Em dev (DB_SYNC=true) o próprio seed cria o schema via synchronize.
+ * Em produção rode as migrations ANTES (`npm run migration:run`) — com
+ * DB_SYNC=false o seed só insere dados, não mexe no schema.
+ *
+ * ⚠️ Não é idempotente: rodar duas vezes cria uma segunda barbearia demo.
  */
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 import { AppointmentStatus, PaymentMethod, UserRole, pointsFromSpend, tierFromSpend } from '@barbersync/shared';
+import { buildDataSourceOptions } from '../config/data-source-options';
 import { Tenant } from '../modules/tenants/tenant.entity';
 import { User } from '../modules/users/user.entity';
 import { Barbeiro } from '../modules/barbers/barbeiro.entity';
@@ -19,16 +25,9 @@ import { Fidelidade } from '../modules/loyalty/fidelidade.entity';
 
 dotenv.config();
 
-const ds = new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 5432),
-  username: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: process.env.DB_NAME || 'barbersync',
-  entities: [Tenant, User, Barbeiro, Servico, Agendamento, Pagamento, Fidelidade],
-  synchronize: true,
-});
+// Mesmo builder do runtime/CLI: garante que o seed cai no banco certo
+// (DATABASE_URL em produção, DB_* no docker local).
+const ds = new DataSource(buildDataSourceOptions());
 
 async function run() {
   await ds.initialize();
