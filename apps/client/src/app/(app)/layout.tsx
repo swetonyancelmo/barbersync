@@ -62,12 +62,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       <style jsx global>{`
-        .cli-shell { min-height: 100dvh; }
+        /* env(safe-area-inset-*) só é != 0 com viewport-fit=cover — protege o
+           conteúdo do notch e da barra de gestos quando instalado como PWA. */
+        .cli-shell { min-height: 100dvh; padding-top: env(safe-area-inset-top); }
         .cli-main {
           width: 100%;
           max-width: 640px;
           margin: 0 auto;
-          padding-bottom: 92px;
+          padding-bottom: calc(92px + env(safe-area-inset-bottom));
         }
         .cli-topbar { display: none; }
         /* Barra inferior = friso de esmalte verde da barbearia */
@@ -80,6 +82,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           border-top: 3px solid var(--pole);
           box-shadow: 0 -8px 24px -14px rgba(30, 58, 51, 0.6);
           z-index: 20;
+          /* Verde vaza até a borda; os itens sobem acima da barra de gestos. */
+          padding-bottom: env(safe-area-inset-bottom);
         }
         .cli-tab {
           position: relative;

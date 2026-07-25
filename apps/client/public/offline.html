@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e3a33" />
+    <title>Sem conexão — BarberSync</title>
+    <style>
+      :root { color-scheme: light dark; }
+      html, body {
+        margin: 0; min-height: 100%;
+        background: #ece9dd; color: #26241c;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: flex; align-items: center; justify-content: center;
+      }
+      @media (prefers-color-scheme: dark) {
+        html, body { background: #14110b; color: #efe7d6; }
+        .card { background: #1f1b14 !important; border-color: #3a3226 !important; }
+        .muted { color: #a49b88 !important; }
+      }
+      .card {
+        background: #fcfbf7; border: 1px solid #d9d5c4; border-radius: 10px;
+        padding: 32px 28px; margin: 20px; max-width: 340px; text-align: center;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+      .mark {
+        width: 56px; height: 56px; border-radius: 14px; background: #1e3a33;
+        display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;
+      }
+      h1 { font-size: 20px; margin: 0 0 6px; }
+      .rule {
+        height: 4px; width: 56px; margin: 10px auto 16px; border-radius: 2px;
+        background: linear-gradient(90deg, #c0392b 0 33%, #f3ecd9 33% 66%, #23406b 66% 100%);
+      }
+      .muted { color: #6e6a5b; font-size: 14px; line-height: 1.55; margin: 0; }
+      button {
+        margin-top: 20px; width: 100%; padding: 11px 16px; font-size: 15px; font-weight: 600;
+        color: #f3ecd9; background: #c0392b; border: none; border-radius: 999px; cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="mark">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#f3ecd9"
+             stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="6" cy="7" r="2.2" />
+          <circle cx="6" cy="17" r="2.2" />
+          <path d="M8 8.5L20 18M8 15.5L20 6M12 12l2 1.6" />
+        </svg>
+      </span>
+      <h1>Sem conexão</h1>
+      <div class="rule"></div>
+      <p class="muted">
+        Não foi possível carregar o BarberSync. Verifique sua internet e tente de novo.
+      </p>
+      <button onclick="location.reload()">Tentar novamente</button>
+    </div>
+  </body>
+</html>

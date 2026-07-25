@@ -2,15 +2,26 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { fontBody, fontDisplay, fontMono } from './fonts';
 import { AuthProvider } from '@/lib/auth';
+import { PwaRegister } from '@/components/pwa-register';
 
 export const metadata: Metadata = {
   title: 'BarberSync',
   description: 'Agende seu horário na barbearia',
+  applicationName: 'BarberSync',
+  // iOS não lê o manifest: precisa destas metas para abrir em tela cheia.
+  appleWebApp: { capable: true, title: 'BarberSync', statusBarStyle: 'default' },
+  icons: {
+    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
+  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // Usa a tela toda no app instalado; as telas compensam com env(safe-area-inset-*).
+  viewportFit: 'cover',
   themeColor: '#1e3a33',
 };
 
@@ -27,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <PwaRegister />
         <AuthProvider>
           <div id="app-root">{children}</div>
         </AuthProvider>
