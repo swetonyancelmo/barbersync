@@ -19,6 +19,7 @@ import { ScheduleModule } from './modules/schedule/schedule.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { HealthModule } from './modules/health/health.module';
+import { StorefrontModule } from './modules/storefront/storefront.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { HealthModule } from './modules/health/health.module';
     NotificationsModule,
     ReportsModule,
     HealthModule,
+    StorefrontModule,
   ],
   providers: [
     // JWT autentica toda rota (exceto @Public); RolesGuard aplica @Roles.

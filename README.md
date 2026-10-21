@@ -21,6 +21,10 @@ equipe. No mobile a navegação é um **menu drawer** (hambúrguer).
 barbearia, com CTA que leva ao cadastro no painel (abre direto no modo cadastro via
 `?cadastro=1`). Não depende da API.
 
+**Link de agendamento:** cada barbearia tem um endereço próprio (`app.barbersync.com/<slug>`) para divulgar na bio do
+Instagram, stories e WhatsApp. Quem abre o link vê serviços, barbeiros e horários livres **sem login** — a conta só é
+pedida para confirmar. No painel, a aba **Link de agendamento** copia o link, gera o QR Code e permite trocar o endereço.
+
 **Regras:** pagamento **manual** (Pix/Cartão/Dinheiro — sem gateway), fidelidade
 recalculada em tempo real, e **notificação por e-mail** ao cliente na confirmação
 do agendamento e num **lembrete ~1h antes** (ver [Notificações](#notificações)).
@@ -134,7 +138,7 @@ versionamento**). O que está no repo é a configuração que os provedores leem
 | API (NestJS) | Render — Blueprint [`render.yaml`](render.yaml) | free tier hiberna após ~15min; escuta em `0.0.0.0`; migrations rodam no start |
 | Postgres | Neon (free) | via `DATABASE_URL` + `DB_SSL=true`; `DB_SYNC=false` |
 | site (landing) | Vercel — Root Directory `apps/site` | estática; não precisa da API. `NEXT_PUBLIC_ADMIN_URL` → domínio do painel |
-| client + admin | Vercel (dois projetos) | Root Directory por app; apontam `NEXT_PUBLIC_API_URL` p/ a API |
+| client + admin | Vercel (dois projetos) | Root Directory por app; apontam `NEXT_PUBLIC_API_URL` p/ a API. O admin também precisa de `NEXT_PUBLIC_CLIENT_URL` (domínio do app do cliente, ex.: `https://app.barbersync.com`) — monta o link de agendamento e o QR Code |
 | Segredos | env do provedor (`sync: false` no `render.yaml`) | `JWT_SECRET`, `DATABASE_URL`, `RESEND_API_KEY` |
 
 **Health check:** `GET /api/health` (público, não toca no banco de propósito —

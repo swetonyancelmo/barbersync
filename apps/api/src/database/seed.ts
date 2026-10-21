@@ -34,7 +34,7 @@ async function run() {
   const hash = await bcrypt.hash('123456', 10);
 
   // Barbearia + admin
-  const tenant = await ds.getRepository(Tenant).save({ nome: 'Barbearia Clássica' });
+  const tenant = await ds.getRepository(Tenant).save({ nome: 'Barbearia Clássica', slug: 'barbearia-classica' });
   await ds.getRepository(User).save({
     nome: 'Dono Admin', email: 'admin@barbersync.com', senhaHash: hash,
     role: UserRole.ADMIN, tenantId: tenant.id, telefone: '(11) 90000-0000',

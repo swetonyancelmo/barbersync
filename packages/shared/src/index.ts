@@ -129,6 +129,73 @@ export function defaultExpediente(): ExpedienteDia[] {
   }));
 }
 
+// ---------------------------------------------------------------------------
+// Link de agendamento da barbearia (app.barbersync.com/<slug>)
+// ---------------------------------------------------------------------------
+
+/** 3–40 chars: minúsculas, números e hífen; sem hífen nas pontas nem duplo. */
+export const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9]|-(?!-)){1,38}[a-z0-9]$/;
+
+/**
+ * Endereços que não podem virar slug: rotas do app do cliente (o slug mora na
+ * raiz, `/<slug>`) e nomes que reservamos para o produto. Manter em sincronia
+ * ao criar uma rota nova no apps/client.
+ */
+export const RESERVED_SLUGS: readonly string[] = [
+  'home', 'agendar', 'perfil', 'login', 'cadastro', 'offline', 'icons',
+  'api', 'admin', 'app', 'www', 'b', 'barbersync', 'painel', 'conta',
+  'ajuda', 'suporte', 'sobre', 'termos', 'privacidade', 'contato', 'blog',
+  'static', 'public', 'assets', 'manifest', 'sw', 'robots', 'sitemap',
+];
+
+/** "Barbearia do Zé!" → "barbearia-do-ze". Não garante unicidade nem tamanho mínimo. */
+export function slugify(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40)
+    .replace(/-+$/g, '');
+}
+
+/** Motivo de recusa de um slug, ou null se ele é aceitável. */
+export function slugProblem(slug: string): string | null {
+  if (!SLUG_REGEX.test(slug)) {
+    return 'Use de 3 a 40 caracteres: letras minúsculas, números e hífen.';
+  }
+  if (RESERVED_SLUGS.includes(slug)) return 'Esse endereço é reservado. Escolha outro.';
+  return null;
+}
+
+/** Vitrine pública da barbearia — o que o link mostra antes de qualquer login. */
+export interface PublicBarbearia {
+  id: string;
+  nome: string;
+  slug: string;
+  servicos: {
+    id: string;
+    nome: string;
+    descricao: string | null;
+    duracaoMin: number;
+    preco: number;
+  }[];
+  barbeiros: {
+    id: string;
+    nome: string;
+    especialidade: string | null;
+    rating: number;
+  }[];
+}
+
+/** Barbearia como o cliente a guarda/lista (link aberto ou histórico). */
+export interface BarbeariaRef {
+  id: string;
+  nome: string;
+  slug: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   user: {

@@ -1,34 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { BarbeariaRef } from '@barbersync/shared';
 
-const KEY = 'barbersync.client.tenant';
+const KEY = 'barbersync.client.barbearia';
+/** Formato antigo (só o id, escolhido num seletor). Descartado: não tem slug. */
+const LEGACY_KEY = 'barbersync.client.tenant';
 
-export interface TenantOption {
-  id: string;
-  nome: string;
+function read(): BarbeariaRef | null {
+  try {
+    localStorage.removeItem(LEGACY_KEY);
+    const raw = localStorage.getItem(KEY);
+    return raw ? (JSON.parse(raw) as BarbeariaRef) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Barbearia selecionada pelo cliente global. Persistida em localStorage —
- * o cliente pode agendar em várias barbearias, então a escolha é explícita.
+ * Barbearia "atual" do cliente global — a do último link aberto
+ * (app.barbersync.com/<slug>) ou escolhida em "minhas barbearias".
+ * Persistida em localStorage para o app abrir direto nela na próxima visita.
  */
 export function useSelectedTenant() {
-  const [tenantId, setTenantIdState] = useState<string | null>(null);
+  const [barbearia, setState] = useState<BarbeariaRef | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setTenantIdState(localStorage.getItem(KEY));
+    setState(read());
+    setReady(true);
   }, []);
 
-  const setTenantId = (id: string) => {
-    localStorage.setItem(KEY, id);
-    setTenantIdState(id);
-  };
+  const setBarbearia = useCallback((b: BarbeariaRef) => {
+    rememberBarbearia(b);
+    setState(b);
+  }, []);
 
-  return { tenantId, setTenantId };
+  return { barbearia, tenantId: barbearia?.id ?? null, ready, setBarbearia };
 }
 
-export function getSelectedTenant(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(KEY);
+export function rememberBarbearia(b: BarbeariaRef) {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ id: b.id, nome: b.nome, slug: b.slug }));
+  } catch {
+    /* modo privado / storage bloqueado: só não lembra */
+  }
 }

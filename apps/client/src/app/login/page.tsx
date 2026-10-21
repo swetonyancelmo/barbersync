@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { IconRazor } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -9,8 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+// useSearchParams exige Suspense p/ o build estático da página.
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const { login, register } = useAuth();
+  // Vindo do link da barbearia: volta para confirmar o horário escolhido.
+  const next = useSearchParams().get('next') ?? undefined;
+  const vindoDoAgendamento = next?.endsWith('/agendar');
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [form, setForm] = useState({ nome: '', email: '', senha: '', telefone: '' });
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +38,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === 'login') {
-        await login(form.email, form.senha);
+        await login(form.email, form.senha, next);
       } else {
-        await register(form);
+        await register(form, next);
       }
     } catch (err) {
       setError((err as Error).message);
@@ -47,7 +60,15 @@ export default function LoginPage() {
         </div>
         <h1 className="mb-2.5 mt-1 text-[40px] tracking-[0.5px]">BarberSync</h1>
         <div className="barber-rule mx-auto mb-3.5 w-[72px]" />
-        <p className="text-slate">{mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}</p>
+        <p className="text-slate">
+          {vindoDoAgendamento
+            ? mode === 'login'
+              ? 'Entre para confirmar seu horário'
+              : 'Crie sua conta para confirmar seu horário'
+            : mode === 'login'
+              ? 'Bem-vindo de volta'
+              : 'Crie sua conta'}
+        </p>
       </div>
 
       <form onSubmit={submit} className="flex flex-col gap-3.5">

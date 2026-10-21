@@ -26,7 +26,12 @@ export class User {
   @Column()
   email: string;
 
-  @Column({ name: 'senha_hash' })
+  /**
+   * Nunca sai do banco por padrão (select: false) — o User vem eager no
+   * Barbeiro e vazaria o hash em toda listagem. Só o login o pede, via
+   * UsersService.findByEmailWithPassword.
+   */
+  @Column({ name: 'senha_hash', select: false })
   senhaHash: string;
 
   @Column({ type: 'enum', enum: UserRole })

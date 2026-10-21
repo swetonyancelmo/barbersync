@@ -15,6 +15,15 @@ export class UsersService {
     return this.repo.findOne({ where: { email: email.toLowerCase() } });
   }
 
+  /** Igual a findByEmail, mas inclui o senhaHash (select: false na entity). Só p/ login. */
+  findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.repo
+      .createQueryBuilder('u')
+      .addSelect('u.senhaHash')
+      .where('u.email = :email', { email: email.toLowerCase() })
+      .getOne();
+  }
+
   async findById(id: string): Promise<User> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuário não encontrado.');

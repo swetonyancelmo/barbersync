@@ -16,6 +16,7 @@ import {
   IconCalendar,
   IconChart,
   IconHours,
+  IconLink,
   IconMenu,
   IconMoney,
   IconScissors,
@@ -32,6 +33,7 @@ const MENU = [
   { href: '/servicos', label: 'Serviços', Icon: IconTag },
   { href: '/horarios', label: 'Horários', Icon: IconHours },
   { href: '/equipe', label: 'Equipe', Icon: IconScissors },
+  { href: '/link', label: 'Link de agendamento', Icon: IconLink },
 ];
 
 // Botão "Sair" sobre o esmalte verde (contorno rosado)

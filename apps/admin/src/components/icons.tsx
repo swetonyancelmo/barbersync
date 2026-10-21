@@ -115,3 +115,24 @@ export const IconRazor = ({ size = 22, className }: P) => (
     <path d="M9 14v5a2 2 0 0 0 2 2h0" />
   </svg>
 );
+
+// Link de agendamento (corrente de dois elos)
+export const IconLink = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1" />
+    <path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" />
+  </svg>
+);
+
+export const IconCopy = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h8" />
+  </svg>
+);
+
+export const IconDownload = ({ size = 20, className }: P) => (
+  <svg {...base(size)} className={className}>
+    <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14" />
+  </svg>
+);
