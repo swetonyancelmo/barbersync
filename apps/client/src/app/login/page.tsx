@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { IconRazor } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function LoginPage() {
   const { login, register } = useAuth();
@@ -33,64 +37,65 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', minHeight: '100dvh', justifyContent: 'center', maxWidth: 440, margin: '0 auto', width: '100%' }}>
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10 }}>
+    <div className="mx-auto flex min-h-dvh w-full max-w-[440px] flex-col justify-center px-6 py-12">
+      <div className="fixed right-4 top-4 z-10">
         <ThemeToggle />
       </div>
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{ display: 'inline-flex', color: 'var(--brass)', marginBottom: 6 }}>
+      <div className="mb-8 text-center">
+        <div className="mb-1.5 inline-flex text-brass">
           <IconRazor size={40} />
         </div>
-        <h1 style={{ fontSize: 40, margin: '4px 0 10px', letterSpacing: 0.5 }}>BarberSync</h1>
-        <div className="barber-rule" style={{ width: 72, margin: '0 auto 14px' }} />
-        <p className="muted" style={{ margin: 0 }}>
-          {mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}
-        </p>
+        <h1 className="mb-2.5 mt-1 text-[40px] tracking-[0.5px]">BarberSync</h1>
+        <div className="barber-rule mx-auto mb-3.5 w-[72px]" />
+        <p className="text-slate">{mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}</p>
       </div>
 
-      <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <form onSubmit={submit} className="flex flex-col gap-3.5">
         {mode === 'signup' && (
           <div>
-            <label className="label">Nome</label>
-            <input className="input" value={form.nome} onChange={set('nome')} required />
+            <Label htmlFor="nome">Nome</Label>
+            <Input id="nome" value={form.nome} onChange={set('nome')} required />
           </div>
         )}
         <div>
-          <label className="label">E-mail</label>
-          <input className="input" type="email" value={form.email} onChange={set('email')} required />
+          <Label htmlFor="email">E-mail</Label>
+          <Input id="email" type="email" value={form.email} onChange={set('email')} required />
         </div>
         {mode === 'signup' && (
           <div>
-            <label className="label">Telefone</label>
-            <input className="input" value={form.telefone} onChange={set('telefone')} required />
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input id="telefone" value={form.telefone} onChange={set('telefone')} required />
           </div>
         )}
         <div>
-          <label className="label">Senha</label>
-          <input className="input" type="password" value={form.senha} onChange={set('senha')} required />
+          <Label htmlFor="senha">Senha</Label>
+          <Input id="senha" type="password" value={form.senha} onChange={set('senha')} required />
         </div>
 
         {error && (
-          <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{error}</p>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        <button className="btn-primary" disabled={loading} style={{ marginTop: 8 }}>
+        <Button className="mt-2 w-full" disabled={loading}>
           {loading ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Cadastrar'}
-        </button>
+        </Button>
       </form>
 
-      <p className="muted" style={{ textAlign: 'center', marginTop: 24, fontSize: 14 }}>
+      <p className="mt-6 text-center text-sm text-slate">
         {mode === 'login' ? 'Não tem conta? ' : 'Já tem conta? '}
-        <a
-          role="button"
+        <Button
+          type="button"
+          variant="link"
+          className="h-auto p-0 text-sm"
           onClick={() => {
             setError(null);
             setMode(mode === 'login' ? 'signup' : 'login');
           }}
-          style={{ cursor: 'pointer' }}
         >
           {mode === 'login' ? 'Cadastre-se' : 'Entrar'}
-        </a>
+        </Button>
       </p>
     </div>
   );

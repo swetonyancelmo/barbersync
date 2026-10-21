@@ -4,7 +4,14 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppointmentStatus, PaymentMethod } from '@barbersync/shared';
 import { api, ApiError } from '@/lib/api';
 import { brl, dataLonga, hora, isoDate } from '@/lib/format';
-import { PaidBadge, StatusBadge } from '@/components/ui';
+import { toast } from 'sonner';
+import { KpiCard, PaidBadge, StatusBadge } from '@/components/ui';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface Agendamento {
   id: string;
@@ -31,6 +38,7 @@ export default function AgendaPage() {
   const [itens, setItens] = useState<DayItem[]>([]);
   const [kpis, setKpis] = useState({ recebido: 0, atendimentos: 0 });
   const [ativos, setAtivos] = useState(0);
+  const [carregando, setCarregando] = useState(true);
 
   // Estado do popover de pagamento (qual agendamento + forma escolhida)
   const [payFor, setPayFor] = useState<string | null>(null);
@@ -47,9 +55,10 @@ export default function AgendaPage() {
     setItens(dia);
     setKpis(k);
     setAtivos(barbers.filter((b) => b.ativo).length);
+    setCarregando(false);
   }, [date]);
 
-  useEffect(() => { load().catch(() => {}); }, [load]);
+  useEffect(() => { load().catch(() => setCarregando(false)); }, [load]);
 
   const shift = (days: number) => setDate((d) => { const n = new Date(d); n.setDate(n.getDate() + days); return n; });
 
@@ -58,6 +67,7 @@ export default function AgendaPage() {
     try {
       await api('/payments', { method: 'POST', body: JSON.stringify({ agendamentoId, forma }) });
       setPayFor(null);
+      toast.success('Pagamento registrado.');
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Falha ao registrar pagamento.');
@@ -66,80 +76,95 @@ export default function AgendaPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 28, marginTop: 0, marginBottom: 8 }}>Agenda</h1>
-      <div className="barber-rule" style={{ width: 60, marginBottom: 20 }} />
+      <h1 className="mb-2 mt-0 text-[28px]">Agenda</h1>
+      <div className="barber-rule mb-5 w-[60px]" />
 
       {/* Navegação de data */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <button className="btn-outline" onClick={() => shift(-1)}>◀</button>
-        <button className="btn-outline" onClick={() => { const d = new Date(); d.setHours(0,0,0,0); setDate(d); }}>Hoje</button>
-        <button className="btn-outline" onClick={() => shift(1)}>▶</button>
-        <span className="muted" style={{ textTransform: 'capitalize' }}>{dataLonga(date)}</span>
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="inline-flex gap-2" role="group" aria-label="Navegar entre dias">
+          <Button variant="outline" size="sm" aria-label="Dia anterior" onClick={() => shift(-1)}>◀</Button>
+          <Button variant="outline" size="sm" onClick={() => { const d = new Date(); d.setHours(0, 0, 0, 0); setDate(d); }}>Hoje</Button>
+          <Button variant="outline" size="sm" aria-label="Próximo dia" onClick={() => shift(1)}>▶</Button>
+        </div>
+        <span className="capitalize text-slate">{dataLonga(date)}</span>
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 24 }}>
-        <div className="kpi"><p className="kpi-label">Atendimentos hoje</p><div className="kpi-value">{kpis.atendimentos}</div></div>
-        <div className="kpi"><p className="kpi-label">Faturado hoje</p><div className="kpi-value" style={{ color: 'var(--brass-light)' }}>{brl(kpis.recebido)}</div></div>
-        <div className="kpi"><p className="kpi-label">Barbeiros ativos</p><div className="kpi-value">{ativos}</div></div>
+      <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3.5">
+        <KpiCard label="Atendimentos hoje" value={kpis.atendimentos} />
+        <KpiCard label="Faturado hoje" value={brl(kpis.recebido)} valueClassName="text-verd" />
+        <KpiCard label="Barbeiros ativos" value={ativos} />
       </div>
 
       {/* Tabela */}
-      <div className="card" style={{ padding: 0 }}>
-        {itens.length === 0 ? (
-          <p className="muted" style={{ padding: 24, textAlign: 'center' }}>Nenhum agendamento neste dia.</p>
-        ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr><th>Hora</th><th>Cliente</th><th>Serviço</th><th>Barbeiro</th><th>Valor</th><th>Status</th><th>Pagamento</th></tr>
-              </thead>
-              <tbody>
-                {itens.map(({ agendamento: a, pagamento }) => {
-                  const recusado = a.status === AppointmentStatus.RECUSADO;
-                  return (
-                    <tr key={a.id}>
-                      <td className="mono" style={{ color: 'var(--brass-light)' }}>{hora(a.dataHora)}</td>
-                      <td>{a.cliente.nome}</td>
-                      <td>{a.servicos.map((s) => s.nome).join(', ')}</td>
-                      <td>{a.barbeiro.user.nome}</td>
-                      <td className="mono">{brl(Number(a.valorTotal))}</td>
-                      <td><StatusBadge status={a.status} /></td>
-                      <td style={{ minWidth: 200 }}>
-                        {pagamento ? (
-                          <PaidBadge forma={pagamento.forma} />
-                        ) : recusado ? (
-                          <span className="muted" style={{ fontSize: 13 }}>—</span>
-                        ) : payFor === a.id ? (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                            {FORMAS.map((f) => (
-                              <button
-                                key={f.value}
-                                onClick={() => setForma(f.value)}
-                                className="btn-outline"
-                                style={{ padding: '5px 10px', fontSize: 12, borderColor: forma === f.value ? 'var(--brass)' : 'var(--oak)', color: forma === f.value ? 'var(--brass-light)' : 'var(--bone)' }}
-                              >
-                                {f.label}
-                              </button>
-                            ))}
-                            <button className="btn-primary" style={{ width: 'auto', padding: '5px 12px', fontSize: 12 }} onClick={() => registrar(a.id)}>Confirmar</button>
-                            <button className="btn-danger" style={{ padding: '5px 10px', fontSize: 12 }} onClick={() => setPayFor(null)}>Cancelar</button>
-                          </div>
-                        ) : (
-                          <button className="btn-outline" style={{ padding: '6px 14px', fontSize: 13 }} onClick={() => { setPayFor(a.id); setForma(PaymentMethod.PIX); setError(null); }}>
-                            Marcar pago
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <Card>
+        {carregando ? (
+          <div className="space-y-3 p-5" aria-busy="true">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
           </div>
+        ) : itens.length === 0 ? (
+          <p className="p-6 text-center text-slate">Nenhum agendamento neste dia.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Hora</TableHead><TableHead>Cliente</TableHead><TableHead>Serviço</TableHead>
+                <TableHead>Barbeiro</TableHead><TableHead>Valor</TableHead><TableHead>Status</TableHead><TableHead>Pagamento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {itens.map(({ agendamento: a, pagamento }) => {
+                const recusado = a.status === AppointmentStatus.RECUSADO;
+                return (
+                  <TableRow key={a.id}>
+                    <TableCell className="mono text-verd">{hora(a.dataHora)}</TableCell>
+                    <TableCell>{a.cliente.nome}</TableCell>
+                    <TableCell>{a.servicos.map((s) => s.nome).join(', ')}</TableCell>
+                    <TableCell>{a.barbeiro.user.nome}</TableCell>
+                    <TableCell className="mono">{brl(Number(a.valorTotal))}</TableCell>
+                    <TableCell><StatusBadge status={a.status} /></TableCell>
+                    <TableCell className="min-w-[200px]">
+                      {pagamento ? (
+                        <PaidBadge forma={pagamento.forma} />
+                      ) : recusado ? (
+                        <span className="text-[13px] text-slate">—</span>
+                      ) : payFor === a.id ? (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            size="sm"
+                            value={forma}
+                            onValueChange={(v) => v && setForma(v as PaymentMethod)}
+                            aria-label="Forma de pagamento"
+                          >
+                            {FORMAS.map((f) => (
+                              <ToggleGroupItem key={f.value} value={f.value}>{f.label}</ToggleGroupItem>
+                            ))}
+                          </ToggleGroup>
+                          <Button size="sm" onClick={() => registrar(a.id)}>Confirmar</Button>
+                          <Button size="sm" variant="danger" onClick={() => setPayFor(null)}>Cancelar</Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => { setPayFor(a.id); setForma(PaymentMethod.PIX); setError(null); }}>
+                          Marcar pago
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
-      </div>
-      {error && <p style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</p>}
+      </Card>
+      {error && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

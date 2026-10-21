@@ -1,4 +1,10 @@
+import { MobileNav } from '@/components/mobile-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import {
   IconArrow,
   IconBell,
@@ -15,6 +21,27 @@ import {
 const ADMIN = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001';
 const SIGNUP = `${ADMIN}/login?cadastro=1`;
 const LOGIN = `${ADMIN}/login`;
+
+const NAV = [
+  { href: '#recursos', label: 'Recursos' },
+  { href: '#como-funciona', label: 'Como funciona' },
+  { href: '#perguntas', label: 'Perguntas' },
+];
+
+// Contêiner padrão das seções
+const WRAP = 'mx-auto w-full max-w-[1120px] px-6';
+const H2 = 'm-0 mt-2.5 text-[clamp(28px,4vw,40px)] text-ink';
+
+function SectionHead({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
+  return (
+    <div className="mb-11 text-center">
+      <span className="font-mono text-xs font-bold tracking-[0.16em] text-pole">{kicker}</span>
+      <h2 className={H2}>{title}</h2>
+      <div className="barber-rule mx-auto mt-4 w-[60px]" />
+      {sub && <p className="mt-4 text-[17px] text-slate">{sub}</p>}
+    </div>
+  );
+}
 
 const FEATURES = [
   {
@@ -90,185 +117,234 @@ export default function LandingPage() {
   return (
     <>
       {/* ---- Navbar ---- */}
-      <header className="lp-nav">
-        <div className="lp-nav-inner">
-          <a href="#topo" className="lp-brand display">
-            <IconScissors size={22} />
+      <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 backdrop-blur-[10px] backdrop-saturate-[1.4]">
+        <div className={`${WRAP} flex items-center justify-between gap-5 py-3.5`}>
+          <a href="#topo" className="inline-flex items-center gap-[9px] font-display text-[22px] tracking-[0.5px] text-ink">
+            <IconScissors size={22} className="text-verd" />
             BarberSync
           </a>
-          <nav className="lp-nav-links">
-            <a href="#recursos">Recursos</a>
-            <a href="#como-funciona">Como funciona</a>
-            <a href="#perguntas">Perguntas</a>
+          <nav className="ml-3 hidden flex-1 gap-1.5 md:flex" aria-label="Seções">
+            {NAV.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="rounded-pill px-3.5 py-2 text-[15px] font-semibold text-slate transition-colors hover:bg-tile-2 hover:text-ink"
+              >
+                {l.label}
+              </a>
+            ))}
           </nav>
-          <div className="lp-nav-actions">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <a href={LOGIN} className="lp-nav-login">Entrar</a>
-            <a href={SIGNUP} className="btn-primary lp-nav-cta">Cadastre sua barbearia</a>
+            <a href={LOGIN} className="hidden px-1.5 py-2 text-[15px] font-bold text-ink hover:text-pole md:inline">
+              Entrar
+            </a>
+            <Button asChild size="sm" className="hidden h-10 px-[18px] sm:inline-flex">
+              <a href={SIGNUP}>Cadastre sua barbearia</a>
+            </Button>
+            <MobileNav links={NAV} loginHref={LOGIN} signupHref={SIGNUP} />
           </div>
         </div>
       </header>
 
       <main id="topo">
         {/* ---- Hero ---- */}
-        <section className="lp-hero">
-          <div className="lp-hero-copy">
-            <span className="plaque lp-eyebrow">Sistema para barbearias</span>
-            <h1 className="lp-h1">
+        <section className={`${WRAP} grid items-center gap-10 py-12 text-center md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:py-[72px] md:text-left`}>
+          <div>
+            <span className="plaque mb-[22px] text-[13px]">Sistema para barbearias</span>
+            <h1 className="m-0 mb-5 text-[clamp(38px,6vw,60px)] text-ink">
               A sua barbearia organizada,<br />do agendamento ao caixa.
             </h1>
-            <p className="lp-lead">
+            <p className="mx-auto mb-[30px] max-w-[30em] text-[19px] leading-[1.55] text-slate md:mx-0">
               Agenda, fidelidade, financeiro e relatórios num só lugar. Seus
               clientes agendam sozinhos pelo celular — você controla tudo pelo painel.
             </p>
-            <div className="lp-hero-cta">
-              <a href={SIGNUP} className="btn-primary">
-                Cadastre sua barbearia <IconArrow size={18} />
-              </a>
-              <a href="#recursos" className="btn-outline">Ver recursos</a>
+            <div className="mb-[26px] flex flex-wrap justify-center gap-3.5 md:justify-start">
+              <Button asChild size="lg">
+                <a href={SIGNUP}>
+                  Cadastre sua barbearia <IconArrow size={18} />
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <a href="#recursos">Ver recursos</a>
+              </Button>
             </div>
-            <ul className="lp-hero-checks">
-              <li><IconCheck size={16} /> Configure em minutos</li>
-              <li><IconCheck size={16} /> Sem instalar nada</li>
-              <li><IconCheck size={16} /> Funciona no celular</li>
+            <ul className="m-0 flex list-none flex-wrap justify-center gap-x-[22px] gap-y-2 p-0 md:justify-start">
+              {['Configure em minutos', 'Sem instalar nada', 'Funciona no celular'].map((t) => (
+                <li key={t} className="inline-flex items-center gap-[7px] text-sm font-semibold text-slate">
+                  <IconCheck size={16} className="text-ok" /> {t}
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Comanda ilustrativa (elemento de assinatura) */}
-          <div className="lp-hero-art" aria-hidden="true">
-            <div className="ticket lp-ticket">
-              <div className="lp-ticket-head">
-                <span className="display">Próximo horário</span>
-                <span className="badge-confirm lp-badge">Confirmado</span>
+          <div className="order-first flex justify-center md:order-none" aria-hidden="true">
+            <div className="ticket w-full max-w-[340px] px-6 pb-[22px] pt-[26px] text-left md:rotate-[1.5deg]">
+              <div className="mt-1 flex items-center justify-between gap-2.5">
+                <span className="display text-xl text-ink">Próximo horário</span>
+                <Badge variant="confirm">Confirmado</Badge>
               </div>
               <div className="ticket-perf" />
-              <div className="lp-ticket-row">
-                <span className="muted">Cliente</span>
-                <strong>João Pereira</strong>
-              </div>
-              <div className="lp-ticket-row">
-                <span className="muted">Serviço</span>
-                <strong>Corte + Barba</strong>
-              </div>
-              <div className="lp-ticket-row">
-                <span className="muted">Barbeiro</span>
-                <strong>Rafael</strong>
-              </div>
+              {[
+                ['Cliente', 'João Pereira'],
+                ['Serviço', 'Corte + Barba'],
+                ['Barbeiro', 'Rafael'],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-baseline justify-between gap-3 py-1.5 text-[15px]">
+                  <span className="text-slate">{k}</span>
+                  <strong className="text-ink">{v}</strong>
+                </div>
+              ))}
               <div className="ticket-perf" />
-              <div className="lp-ticket-foot">
-                <span className="mono lp-ticket-time">14:30</span>
-                <span className="mono lp-ticket-price">R$ 55,00</span>
+              <div className="flex items-baseline justify-between">
+                <span className="mono text-[30px] text-ink">14:30</span>
+                <span className="mono text-xl font-bold text-verd">R$ 55,00</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* ---- Recursos ---- */}
-        <section id="recursos" className="lp-section">
-          <div className="lp-section-head">
-            <span className="lp-kicker mono">RECURSOS</span>
-            <h2 className="lp-h2">Tudo que a barbearia precisa</h2>
-            <div className="barber-rule lp-rule" />
-            <p className="lp-section-sub">
-              Deixe o caderno de agendamentos e o WhatsApp bagunçado para trás.
-            </p>
-          </div>
-          <div className="lp-grid">
+        <section id="recursos" className={`${WRAP} py-[52px] sm:py-[72px]`}>
+          <SectionHead
+            kicker="RECURSOS"
+            title="Tudo que a barbearia precisa"
+            sub="Deixe o caderno de agendamentos e o WhatsApp bagunçado para trás."
+          />
+          <div className="grid gap-5 md:grid-cols-3">
             {FEATURES.map(({ Icon, title, desc }) => (
-              <div key={title} className="card lp-feature">
-                <span className="lp-feature-icon"><Icon size={22} /></span>
-                <h3 className="lp-feature-title">{title}</h3>
-                <p className="lp-feature-desc muted">{desc}</p>
-              </div>
+              <Card key={title}>
+                <CardHeader className="gap-0 px-6 pb-0 pt-7">
+                  <span className="mb-4 inline-flex size-[46px] items-center justify-center rounded-input bg-verd/[0.12] text-verd">
+                    <Icon size={22} />
+                  </span>
+                  <CardTitle className="mb-2 text-xl leading-[1.05] text-ink">{title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-7">
+                  <CardDescription className="text-[15px] leading-[1.55]">{desc}</CardDescription>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </section>
 
         {/* ---- Como funciona ---- */}
-        <section id="como-funciona" className="lp-section lp-section-alt">
-          <div className="lp-section-head">
-            <span className="lp-kicker mono">COMO FUNCIONA</span>
-            <h2 className="lp-h2">No ar em três passos</h2>
-            <div className="barber-rule lp-rule" />
-          </div>
-          <div className="lp-steps">
-            {STEPS.map(({ n, title, desc }) => (
-              <div key={n} className="lp-step">
-                <span className="lp-step-n display">{n}</span>
-                <h3 className="lp-feature-title">{title}</h3>
-                <p className="muted">{desc}</p>
-              </div>
-            ))}
+        <section id="como-funciona" className="border-y border-line bg-tile py-[52px] sm:py-[72px]">
+          <div className={WRAP}>
+            <SectionHead kicker="COMO FUNCIONA" title="No ar em três passos" />
+            <div className="grid gap-8 md:grid-cols-3 md:gap-6">
+              {STEPS.map(({ n, title, desc }) => (
+                <div key={n} className="p-2 text-center">
+                  <span className="display mb-4 inline-flex size-[54px] items-center justify-center rounded-full bg-pine text-[26px] text-on-enamel shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]">
+                    {n}
+                  </span>
+                  <h3 className="m-0 mb-2 text-xl text-ink">{title}</h3>
+                  <p className="m-0 text-slate">{desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* ---- Destaque app do cliente ---- */}
-        <section className="lp-section">
-          <div className="lp-highlight card card-raised">
-            <div className="lp-highlight-copy">
-              <span className="lp-feature-icon"><IconBell size={22} /></span>
-              <h2 className="lp-h2">Seus clientes na palma da mão</h2>
-              <p className="muted">
+        <section className={`${WRAP} py-[52px] sm:py-[72px]`}>
+          <Card className="grid items-center gap-10 px-6 py-8 shadow-raised md:grid-cols-[1.1fr_0.9fr] md:px-10 md:py-11">
+            <div>
+              <span className="inline-flex size-[46px] items-center justify-center rounded-input bg-verd/[0.12] text-verd">
+                <IconBell size={22} />
+              </span>
+              <h2 className={`${H2} mt-3`}>Seus clientes na palma da mão</h2>
+              <p className="mb-6 mt-3.5 text-base leading-[1.6] text-slate">
                 O cliente escolhe serviço, barbeiro e horário pelo celular, acompanha
                 a fidelidade e o histórico, e recebe confirmação e lembrete
                 automáticos. Menos falta, menos telefone tocando.
               </p>
-              <a href={SIGNUP} className="btn-primary lp-highlight-cta">
-                Começar agora <IconArrow size={18} />
-              </a>
+              <Button asChild>
+                <a href={SIGNUP}>
+                  Começar agora <IconArrow size={18} />
+                </a>
+              </Button>
             </div>
-            <ul className="lp-highlight-list">
-              <li><IconCheck size={18} /> Agendamento 24h, sem depender de mensagem</li>
-              <li><IconCheck size={18} /> Confirmação e lembrete por e-mail</li>
-              <li><IconCheck size={18} /> Programa de fidelidade com níveis</li>
-              <li><IconCheck size={18} /> Instalável na tela inicial do celular</li>
+            <ul className="m-0 grid list-none gap-3.5 p-0">
+              {[
+                'Agendamento 24h, sem depender de mensagem',
+                'Confirmação e lembrete por e-mail',
+                'Programa de fidelidade com níveis',
+                'Instalável na tela inicial do celular',
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-3 text-base font-semibold text-ink">
+                  <IconCheck size={18} className="mt-0.5 shrink-0 text-ok" /> {t}
+                </li>
+              ))}
             </ul>
-          </div>
+          </Card>
         </section>
 
         {/* ---- FAQ ---- */}
-        <section id="perguntas" className="lp-section lp-section-alt">
-          <div className="lp-section-head">
-            <span className="lp-kicker mono">PERGUNTAS FREQUENTES</span>
-            <h2 className="lp-h2">Ainda em dúvida?</h2>
-            <div className="barber-rule lp-rule" />
-          </div>
-          <div className="lp-faq">
-            {FAQ.map(({ q, a }) => (
-              <details key={q} className="lp-faq-item card">
-                <summary className="lp-faq-q">{q}</summary>
-                <p className="lp-faq-a muted">{a}</p>
-              </details>
-            ))}
+        <section id="perguntas" className="border-y border-line bg-tile py-[52px] sm:py-[72px]">
+          <div className={WRAP}>
+            <SectionHead kicker="PERGUNTAS FREQUENTES" title="Ainda em dúvida?" />
+            {/*
+              SEO: forceMount mantém as respostas no HTML (Radix desmonta o conteúdo fechado
+              por padrão); fechado, o Radix aplica o atributo `hidden`, então ficam ocultas
+              visualmente mas presentes no DOM para crawlers/leitores.
+            */}
+            <Accordion type="single" collapsible className="mx-auto grid max-w-[760px] gap-3.5">
+              {FAQ.map(({ q, a }, i) => (
+                <AccordionItem
+                  key={q}
+                  value={`faq-${i}`}
+                  className="rounded-card border bg-tile px-6 shadow-hairline"
+                >
+                  <AccordionTrigger className="py-5 text-[17px] text-ink">{q}</AccordionTrigger>
+                  <AccordionContent forceMount className="text-[15px] leading-[1.6]">
+                    {a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </section>
 
         {/* ---- CTA final ---- */}
-        <section className="lp-cta-band">
-          <h2 className="lp-cta-title display">Pronto para organizar sua barbearia?</h2>
-          <p className="lp-cta-sub">Cadastre-se e comece a receber agendamentos hoje.</p>
-          <a href={SIGNUP} className="btn-primary lp-cta-btn">
-            Cadastre sua barbearia <IconArrow size={18} />
-          </a>
+        <section className="relative bg-pine px-6 py-[72px] text-center text-on-enamel">
+          <div className="absolute inset-x-0 top-0 h-[5px]" style={{ background: 'var(--pole-stripe)' }} aria-hidden="true" />
+          <h2 className="display m-0 text-[clamp(28px,4vw,42px)] text-on-enamel">
+            Pronto para organizar sua barbearia?
+          </h2>
+          <p className="mb-[30px] mt-3.5 text-lg text-on-enamel/80">
+            Cadastre-se e comece a receber agendamentos hoje.
+          </p>
+          <Button asChild size="lg">
+            <a href={SIGNUP}>
+              Cadastre sua barbearia <IconArrow size={18} />
+            </a>
+          </Button>
         </section>
       </main>
 
       {/* ---- Footer ---- */}
-      <footer className="lp-footer">
-        <div className="lp-footer-inner">
-          <span className="lp-brand display">
-            <IconScissors size={20} />
+      <footer className="bg-porcelain">
+        <Separator />
+        <div className={`${WRAP} flex flex-col items-center gap-4 py-7 text-center md:flex-row md:gap-5 md:text-left`}>
+          <span className="inline-flex items-center gap-[9px] font-display text-[22px] tracking-[0.5px] text-ink">
+            <IconScissors size={20} className="text-verd" />
             BarberSync
           </span>
-          <nav className="lp-footer-links">
-            <a href="#recursos">Recursos</a>
-            <a href="#como-funciona">Como funciona</a>
-            <a href={LOGIN}>Entrar</a>
-            <a href={SIGNUP}>Cadastrar</a>
+          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-3.5 md:flex-1 md:justify-start md:gap-[18px]" aria-label="Rodapé">
+            {[
+              ['#recursos', 'Recursos'],
+              ['#como-funciona', 'Como funciona'],
+              [LOGIN, 'Entrar'],
+              [SIGNUP, 'Cadastrar'],
+            ].map(([href, label]) => (
+              <a key={href} href={href} className="text-[15px] font-semibold text-slate hover:text-pole">
+                {label}
+              </a>
+            ))}
           </nav>
-          <span className="lp-footer-copy muted">
-            © {new Date().getFullYear()} BarberSync
-          </span>
+          <span className="text-sm text-slate">© {new Date().getFullYear()} BarberSync</span>
         </div>
       </footer>
     </>

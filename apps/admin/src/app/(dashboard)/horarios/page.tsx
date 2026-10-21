@@ -1,26 +1,32 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { ExpedienteDia, WEEKDAYS } from '@barbersync/shared';
 import { api, ApiError } from '@/lib/api';
 import { IconPlus } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HorariosPage() {
-  const [dias, setDias] = useState<ExpedienteDia[]>([]);
+  const [dias, setDias] = useState<ExpedienteDia[] | null>(null);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api<ExpedienteDia[]>('/schedule').then(setDias).catch(() => {});
+    api<ExpedienteDia[]>('/schedule').then(setDias).catch(() => setDias([]));
   }, []);
 
   function update(dia: number, patch: Partial<ExpedienteDia>) {
-    setDias((cur) => cur.map((d) => (d.diaSemana === dia ? { ...d, ...patch } : d)));
+    setDias((cur) => cur && cur.map((d) => (d.diaSemana === dia ? { ...d, ...patch } : d)));
   }
   function updateBloco(dia: number, idx: number, campo: 'inicio' | 'fim', valor: string) {
     setDias((cur) =>
-      cur.map((d) =>
+      cur && cur.map((d) =>
         d.diaSemana === dia
           ? { ...d, blocos: d.blocos.map((b, i) => (i === idx ? { ...b, [campo]: valor } : b)) }
           : d,
@@ -28,19 +34,18 @@ export default function HorariosPage() {
     );
   }
   function addBloco(dia: number) {
-    setDias((cur) => cur.map((d) => (d.diaSemana === dia ? { ...d, blocos: [...d.blocos, { inicio: '09:00', fim: '12:00' }] } : d)));
+    setDias((cur) => cur && cur.map((d) => (d.diaSemana === dia ? { ...d, blocos: [...d.blocos, { inicio: '09:00', fim: '12:00' }] } : d)));
   }
   function removeBloco(dia: number, idx: number) {
-    setDias((cur) => cur.map((d) => (d.diaSemana === dia ? { ...d, blocos: d.blocos.filter((_, i) => i !== idx) } : d)));
+    setDias((cur) => cur && cur.map((d) => (d.diaSemana === dia ? { ...d, blocos: d.blocos.filter((_, i) => i !== idx) } : d)));
   }
 
   async function salvar() {
-    setSaving(true); setMsg(null); setError(null);
+    setSaving(true); setError(null);
     try {
       const updated = await api<ExpedienteDia[]>('/schedule', { method: 'PUT', body: JSON.stringify({ dias }) });
       setDias(updated);
-      setMsg('Horários salvos.');
-      setTimeout(() => setMsg(null), 2500);
+      toast.success('Horários salvos.');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Falha ao salvar.');
     } finally {
@@ -49,49 +54,67 @@ export default function HorariosPage() {
   }
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 28, margin: 0 }}>Horários</h1>
-      <div className="barber-rule" style={{ width: 60, margin: '8px 0 8px' }} />
-      <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>
+    <div className="max-w-[720px]">
+      <h1 className="m-0 text-[28px]">Horários</h1>
+      <div className="barber-rule my-2 w-[60px]" />
+      <p className="mb-4 mt-0 text-sm text-slate">
         Dias e faixas de funcionamento da barbearia. A grade de horários do cliente é gerada a partir daqui.
       </p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {dias.map((d) => (
-          <div key={d.diaSemana} className="card" style={{ padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <strong style={{ fontSize: 16, minWidth: 96 }}>{WEEKDAYS[d.diaSemana]}</strong>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
-                <input type="checkbox" checked={d.aberto} onChange={(e) => update(d.diaSemana, { aberto: e.target.checked })} />
-                <span className={d.aberto ? '' : 'muted'}>{d.aberto ? 'Aberto' : 'Fechado'}</span>
+      <div className="flex flex-col gap-2.5">
+        {dias === null && [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[62px] rounded-card" />)}
+        {dias?.map((d) => (
+          <Card key={d.diaSemana} className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <strong className="min-w-24 text-base">{WEEKDAYS[d.diaSemana]}</strong>
+              <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+                <Switch
+                  checked={d.aberto}
+                  onCheckedChange={(v) => update(d.diaSemana, { aberto: v })}
+                  aria-label={`${WEEKDAYS[d.diaSemana]} aberto`}
+                />
+                <span className={d.aberto ? '' : 'text-slate'}>{d.aberto ? 'Aberto' : 'Fechado'}</span>
               </label>
             </div>
 
             {d.aberto && (
-              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="mt-3.5 flex flex-col gap-2.5">
                 {d.blocos.map((b, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <input className="input mono" type="time" value={b.inicio} onChange={(e) => updateBloco(d.diaSemana, i, 'inicio', e.target.value)} style={{ flex: '1 1 120px', minWidth: 0, maxWidth: 130 }} />
-                    <span className="muted">até</span>
-                    <input className="input mono" type="time" value={b.fim} onChange={(e) => updateBloco(d.diaSemana, i, 'fim', e.target.value)} style={{ flex: '1 1 120px', minWidth: 0, maxWidth: 130 }} />
-                    <button className="btn-danger" style={{ padding: '6px 12px', fontSize: 13, flexShrink: 0, marginLeft: 'auto' }} onClick={() => removeBloco(d.diaSemana, i)}>Remover</button>
+                  <div key={i} className="flex flex-wrap items-center gap-2.5">
+                    <Input
+                      type="time"
+                      aria-label="Início"
+                      className="min-w-0 max-w-[130px] flex-[1_1_120px] font-mono"
+                      value={b.inicio}
+                      onChange={(e) => updateBloco(d.diaSemana, i, 'inicio', e.target.value)}
+                    />
+                    <span className="text-slate">até</span>
+                    <Input
+                      type="time"
+                      aria-label="Fim"
+                      className="min-w-0 max-w-[130px] flex-[1_1_120px] font-mono"
+                      value={b.fim}
+                      onChange={(e) => updateBloco(d.diaSemana, i, 'fim', e.target.value)}
+                    />
+                    <Button variant="danger" size="sm" className="ml-auto shrink-0" onClick={() => removeBloco(d.diaSemana, i)}>
+                      Remover
+                    </Button>
                   </div>
                 ))}
-                <button className="btn-outline" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13 }} onClick={() => addBloco(d.diaSemana)}>
+                <Button variant="outline" size="sm" className="self-start" onClick={() => addBloco(d.diaSemana)}>
                   <IconPlus size={15} /> Adicionar faixa
-                </button>
+                </Button>
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 20 }}>
-        <button className="btn-primary" style={{ width: 'auto' }} disabled={saving} onClick={salvar}>
+      <div className="mt-5 flex flex-wrap items-center gap-3.5">
+        <Button disabled={saving || dias === null} onClick={salvar}>
           {saving ? 'Salvando…' : 'Salvar horários'}
-        </button>
-        {msg && <span style={{ color: 'var(--ok)', fontSize: 14 }}>{msg}</span>}
-        {error && <span style={{ color: 'var(--danger)', fontSize: 14 }}>{error}</span>}
+        </Button>
+        {error && <Alert variant="destructive" className="w-auto py-2"><AlertDescription>{error}</AlertDescription></Alert>}
       </div>
     </div>
   );

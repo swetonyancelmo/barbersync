@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { fontBody, fontDisplay, fontMono } from './fonts';
 import { AuthProvider } from '@/lib/auth';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'BarberSync · Painel',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <AuthProvider>{children}</AuthProvider>
+        <Toaster />
       </body>
     </html>
   );

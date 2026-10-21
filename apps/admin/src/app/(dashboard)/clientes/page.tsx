@@ -5,6 +5,11 @@ import { LoyaltyTier, Paginated } from '@barbersync/shared';
 import { api } from '@/lib/api';
 import { brl } from '@/lib/format';
 import { TierBadge } from '@/components/ui';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Cliente {
   id: string;
@@ -22,6 +27,7 @@ export default function ClientesPage() {
   const [page, setPage] = useState(1);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // Busca nova volta para a página 1; o debounce cobre a digitação.
   useEffect(() => {
@@ -29,6 +35,7 @@ export default function ClientesPage() {
   }, [search]);
 
   useEffect(() => {
+    setLoading(true);
     const t = setTimeout(() => {
       const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
       if (search) params.set('search', search);
@@ -40,7 +47,8 @@ export default function ClientesPage() {
         .catch(() => {
           setClientes([]);
           setTotal(0);
-        });
+        })
+        .finally(() => setLoading(false));
     }, 250);
     return () => clearTimeout(t);
   }, [search, page]);
@@ -49,84 +57,96 @@ export default function ClientesPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 28, marginTop: 0, marginBottom: 8 }}>Clientes</h1>
-      <div className="barber-rule" style={{ width: 60, marginBottom: 20 }} />
+      <h1 className="mb-2 mt-0 text-[28px]">Clientes</h1>
+      <div className="barber-rule mb-5 w-[60px]" />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-        <input
-          className="input"
-          placeholder="Buscar por nome ou telefone…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ maxWidth: 380 }}
-        />
+      <div className="mb-5 flex flex-wrap items-center gap-3.5">
+        <div className="relative w-full max-w-[380px]">
+          <svg
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate"
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden
+          >
+            <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+          </svg>
+          <Input
+            className="pl-10"
+            placeholder="Buscar por nome ou telefone…"
+            aria-label="Buscar clientes"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         {total > 0 && (
-          <span className="muted mono" style={{ fontSize: 13 }}>
+          <span className="font-mono text-[13px] text-slate">
             {total} cliente{total === 1 ? '' : 's'}
           </span>
         )}
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        {clientes.length === 0 ? (
-          <p className="muted" style={{ padding: 24, textAlign: 'center' }}>
+      <Card className="overflow-hidden p-0">
+        {loading && clientes.length === 0 ? (
+          <div className="flex flex-col gap-3 p-4">
+            {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+          </div>
+        ) : clientes.length === 0 ? (
+          <p className="p-6 text-center text-slate">
             {search ? 'Nenhum cliente encontrado.' : 'Nenhum cliente ainda.'}
           </p>
         ) : (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr><th>Nome</th><th>Telefone</th><th>Última visita</th><th>Total gasto</th><th>Tier</th></tr>
-              </thead>
-              <tbody>
-                {clientes.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.nome}</td>
-                    <td className="mono">{c.telefone ?? '—'}</td>
-                    <td className="mono">{c.ultimaVisita ? new Date(c.ultimaVisita).toLocaleDateString('pt-BR') : '—'}</td>
-                    <td className="mono" style={{ color: 'var(--brass-light)' }}>{brl(c.totalGasto)}</td>
-                    <td><TierBadge tier={c.tier} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Última visita</TableHead>
+                <TableHead>Total gasto</TableHead>
+                <TableHead>Tier</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {clientes.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="whitespace-nowrap font-semibold">{c.nome}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono">{c.telefone ?? '—'}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono">
+                    {c.ultimaVisita ? new Date(c.ultimaVisita).toLocaleDateString('pt-BR') : '—'}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-verd">{brl(c.totalGasto)}</TableCell>
+                  <TableCell><TierBadge tier={c.tier} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </Card>
 
       {totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-          <button
-            className="btn-outline"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            aria-label="Página anterior"
+        <nav className="mt-4 flex flex-wrap items-center gap-2" aria-label="Paginação">
+          <Button
+            variant="outline" size="icon" disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)} aria-label="Página anterior"
           >
             ‹
-          </button>
+          </Button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-            <button
+            <Button
               key={n}
-              className="btn-outline mono"
+              variant="outline"
+              size="icon"
+              className={n === page ? 'border-pole font-bold text-pole' : 'font-mono'}
+              aria-current={n === page ? 'page' : undefined}
               onClick={() => setPage(n)}
-              style={
-                n === page
-                  ? { borderColor: 'var(--pole)', color: 'var(--pole)', fontWeight: 700 }
-                  : undefined
-              }
             >
               {n}
-            </button>
+            </Button>
           ))}
-          <button
-            className="btn-outline"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            aria-label="Próxima página"
+          <Button
+            variant="outline" size="icon" disabled={page >= totalPages}
+            onClick={() => setPage((p) => p + 1)} aria-label="Próxima página"
           >
             ›
-          </button>
-        </div>
+          </Button>
+        </nav>
       )}
     </div>
   );

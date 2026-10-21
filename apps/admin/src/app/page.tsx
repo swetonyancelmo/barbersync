@@ -13,5 +13,5 @@ export default function IndexPage() {
     router.replace(user ? '/agenda' : '/login');
   }, [user, loading, router]);
 
-  return <div style={{ padding: 40 }} className="muted">Carregando…</div>;
+  return <div className="p-10 text-slate">Carregando…</div>;
 }

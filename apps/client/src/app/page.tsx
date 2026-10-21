@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function IndexPage() {
   const { user, loading } = useAuth();
@@ -14,8 +15,8 @@ export default function IndexPage() {
   }, [user, loading, router]);
 
   return (
-    <div style={{ padding: 40, textAlign: 'center' }} className="muted">
-      Carregando…
+    <div className="flex justify-center p-10" role="status" aria-label="Carregando">
+      <Skeleton className="h-6 w-32" />
     </div>
   );
 }

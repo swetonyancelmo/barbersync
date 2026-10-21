@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { IconScissors } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const { login, registerBarbearia } = useAuth();
@@ -41,63 +45,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 10 }}>
+    <div className="flex min-h-dvh items-center justify-center p-6">
+      <div className="fixed right-4 top-4 z-10">
         <ThemeToggle />
       </div>
-      <div style={{ width: '100%', maxWidth: 400 }}>
-        <div style={{ textAlign: 'center', marginBottom: 30 }}>
-          <div style={{ display: 'inline-flex', color: 'var(--brass)', marginBottom: 6 }}>
+      <div className="w-full max-w-[400px]">
+        <div className="mb-[30px] text-center">
+          <div className="mb-1.5 inline-flex text-brass">
             <IconScissors size={38} />
           </div>
-          <h1 style={{ fontSize: 36, margin: '4px 0 10px', letterSpacing: 0.5 }}>BarberSync</h1>
-          <div className="barber-rule" style={{ width: 68, margin: '0 auto 14px' }} />
-          <p className="muted" style={{ margin: 0 }}>
+          <h1 className="mb-2.5 mt-1 text-4xl tracking-[0.5px]">BarberSync</h1>
+          <div className="barber-rule mx-auto mb-3.5 w-[68px]" />
+          <p className="m-0 text-slate">
             {mode === 'login' ? 'Acesse seu painel' : 'Cadastre sua barbearia'}
           </p>
         </div>
 
-        <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={submit} className="flex flex-col gap-3.5">
           {mode === 'signup' && (
             <>
               <div>
-                <label className="label">Nome da barbearia</label>
-                <input className="input" value={form.nomeBarbearia} onChange={set('nomeBarbearia')} required />
+                <Label htmlFor="nomeBarbearia">Nome da barbearia</Label>
+                <Input id="nomeBarbearia" value={form.nomeBarbearia} onChange={set('nomeBarbearia')} required />
               </div>
               <div>
-                <label className="label">Seu nome</label>
-                <input className="input" value={form.nomeAdmin} onChange={set('nomeAdmin')} required />
+                <Label htmlFor="nomeAdmin">Seu nome</Label>
+                <Input id="nomeAdmin" value={form.nomeAdmin} onChange={set('nomeAdmin')} required />
               </div>
             </>
           )}
           <div>
-            <label className="label">E-mail</label>
-            <input className="input" type="email" value={form.email} onChange={set('email')} required />
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" type="email" value={form.email} onChange={set('email')} required />
           </div>
           <div>
-            <label className="label">Senha</label>
-            <input className="input" type="password" value={form.senha} onChange={set('senha')} required />
+            <Label htmlFor="senha">Senha</Label>
+            <Input id="senha" type="password" value={form.senha} onChange={set('senha')} required />
           </div>
 
-          {error && <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{error}</p>}
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-          <button className="btn-primary" disabled={loading} style={{ width: '100%', marginTop: 6 }}>
+          <Button disabled={loading} className="mt-1.5 w-full">
             {loading ? 'Aguarde…' : mode === 'login' ? 'Entrar' : 'Criar barbearia'}
-          </button>
+          </Button>
         </form>
 
-        <p className="muted" style={{ textAlign: 'center', marginTop: 22, fontSize: 14 }}>
+        <p className="mt-[22px] text-center text-sm text-slate">
           {mode === 'login' ? 'Ainda não tem conta? ' : 'Já tem uma barbearia? '}
-          <a
-            role="button"
-            style={{ cursor: 'pointer' }}
+          <button
+            type="button"
+            className="font-semibold text-pole hover:underline"
             onClick={() => {
               setError(null);
               setMode(mode === 'login' ? 'signup' : 'login');
             }}
           >
             {mode === 'login' ? 'Cadastre sua barbearia' : 'Entrar'}
-          </a>
+          </button>
         </p>
       </div>
     </div>

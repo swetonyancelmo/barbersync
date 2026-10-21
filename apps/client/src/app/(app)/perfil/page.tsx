@@ -8,6 +8,15 @@ import { useSelectedTenant } from '@/lib/tenant';
 import { brl, formatDateTime } from '@/lib/format';
 import { BarberAvatar, StatusBadge, TierBadge } from '@/components/ui';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Progresso {
   pontosAtuais: number;
@@ -93,6 +102,7 @@ export default function PerfilPage() {
       setPerfil(updated);
       updateUser({ nome: updated.nome }); // reflete no header/saudações
       setEditing(false);
+      toast.success('Perfil atualizado.');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Falha ao salvar.');
     } finally {
@@ -108,130 +118,125 @@ export default function PerfilPage() {
   const pct = prog ? Math.min(100, (prog.pontosAtuais / prog.meta) * 100) : 0;
 
   return (
-    <div style={{ padding: '24px 18px' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+    <div className="px-[18px] py-6">
+      <header className="mb-[22px] flex items-center gap-3.5">
         <BarberAvatar nome={user?.nome ?? '?'} size={60} />
         <div>
-          <h1 style={{ margin: 0, fontSize: 24 }}>{perfil?.nome ?? user?.nome}</h1>
-          <p className="muted" style={{ margin: 0, fontSize: 14 }}>{user?.email}</p>
-          {perfil?.telefone && <p className="muted mono" style={{ margin: '2px 0 0', fontSize: 13 }}>{perfil.telefone}</p>}
+          <h1 className="text-2xl">{perfil?.nome ?? user?.nome}</h1>
+          <p className="text-sm text-slate">{user?.email}</p>
+          {perfil?.telefone && <p className="mono mt-0.5 text-[13px] text-slate">{perfil.telefone}</p>}
         </div>
       </header>
 
       {/* Fidelidade */}
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+      <Card className="mb-6 p-6">
+        <div className="mb-3 flex items-center justify-between">
           <strong>Fidelidade</strong>
           {prog && <TierBadge tier={prog.tier} />}
         </div>
-        <div className="progress-track" style={{ marginBottom: 8 }}>
-          <div className="progress-fill" style={{ width: `${pct}%` }} />
-        </div>
+        <Progress value={pct} aria-label="Progresso de fidelidade" className="mb-2" />
         {prog && (
-          <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+          <p className="text-[13px] text-slate">
             <span className="mono">{prog.pontosAtuais}/{prog.meta}</span> pts · faltam <span className="mono">{prog.faltam}</span> pts para um serviço grátis
           </p>
         )}
-      </div>
+      </Card>
 
       {/* Histórico */}
-      <h3 style={{ fontSize: 18, marginBottom: 10 }}>Histórico</h3>
+      <h3 className="mb-2.5 text-lg">Histórico</h3>
       {hist.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', marginBottom: 24 }}>
-          <p className="muted" style={{ margin: 0 }}>Você ainda não tem agendamentos.</p>
-        </div>
+        <Card className="mb-6 p-6 text-center">
+          <p className="text-slate">Você ainda não tem agendamentos.</p>
+        </Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+        <div className="mb-6 flex flex-col gap-2.5">
           {hist.map((a) => (
-            <div key={a.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: 14 }}>
+            <Card key={a.id} className="flex items-start justify-between p-3.5">
               <div>
                 <strong>{a.servicos.map((s) => s.nome).join(', ')}</strong>
-                <p className="muted" style={{ margin: '4px 0', fontSize: 13 }}>
+                <p className="my-1 text-[13px] text-slate">
                   {a.barbeiro.user.nome} · {formatDateTime(a.dataHora)}
                 </p>
-                <span className="mono" style={{ color: 'var(--brass-light)', fontSize: 14 }}>{brl(Number(a.valorTotal))}</span>
+                <span className="mono text-sm text-verd">{brl(Number(a.valorTotal))}</span>
               </div>
               <StatusBadge status={a.status} />
-            </div>
+            </Card>
           ))}
           {hist.length < histTotal && (
-            <button
-              className="btn-outline"
-              onClick={carregarMais}
-              disabled={loadingMore}
-              style={{ width: '100%' }}
-            >
+            <Button variant="outline" className="w-full" onClick={carregarMais} disabled={loadingMore}>
               {loadingMore
                 ? 'Carregando…'
                 : `Carregar mais (${histTotal - hist.length} restantes)`}
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {/* Menu Conta */}
-      <h3 style={{ fontSize: 18, marginBottom: 10 }}>Conta</h3>
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div
-          role="button"
+      <h3 className="mb-2.5 text-lg">Conta</h3>
+      <Card className="overflow-hidden">
+        <Button
+          variant="ghost"
+          className="h-auto w-full justify-between rounded-none px-4 py-3.5 text-[15px] font-normal text-ink"
           onClick={abrirEdicao}
-          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
         >
           <span>Editar perfil</span>
-          <span className="muted" style={{ fontSize: 18 }}>›</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderBottom: '1px solid var(--border)' }}>
+          <span className="text-lg text-slate" aria-hidden="true">›</span>
+        </Button>
+        <Separator />
+        <div className="flex items-center justify-between px-4 py-3.5">
           <span>Formas de pagamento</span>
-          <span className="muted mono" style={{ fontSize: 11 }}>em breve</span>
+          <span className="mono text-[11px] text-slate">em breve</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid var(--border)' }}>
+        <Separator />
+        <div className="flex items-center justify-between px-4 py-2.5">
           <span>Tema escuro</span>
           <ThemeToggle />
         </div>
-        <div
-          role="button"
+        <Separator />
+        <Button
+          variant="ghost"
+          className="h-auto w-full justify-start rounded-none px-4 py-3.5 text-[15px] font-semibold text-danger hover:bg-danger/10 hover:text-danger"
           onClick={logout}
-          style={{ padding: '14px 16px', color: 'var(--danger)', cursor: 'pointer', fontWeight: 600 }}
         >
           Sair
-        </div>
-      </div>
+        </Button>
+      </Card>
 
       {/* Modal Editar perfil */}
-      {editing && (
-        <div
-          onClick={() => setEditing(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 60 }}
-        >
-          <form
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={salvar}
-            className="card card-raised"
-            style={{ width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 14 }}
-          >
-            <h3 style={{ margin: 0, fontSize: 20 }}>Editar perfil</h3>
-            <div className="barber-rule" style={{ width: 48 }} />
+      <Dialog open={editing} onOpenChange={setEditing}>
+        <DialogContent className="max-w-[420px]">
+          <form onSubmit={salvar} className="flex flex-col gap-3.5">
+            <DialogHeader>
+              <DialogTitle>Editar perfil</DialogTitle>
+              <DialogDescription className="sr-only">Atualize seu nome e telefone.</DialogDescription>
+            </DialogHeader>
+            <div className="barber-rule w-12" />
             <div>
-              <label className="label">Nome</label>
-              <input className="input" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required minLength={2} />
+              <Label htmlFor="edit-nome">Nome</Label>
+              <Input id="edit-nome" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required minLength={2} />
             </div>
             <div>
-              <label className="label">Telefone</label>
-              <input className="input" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(11) 90000-0000" />
+              <Label htmlFor="edit-telefone">Telefone</Label>
+              <Input id="edit-telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} placeholder="(11) 90000-0000" />
             </div>
             <div>
-              <label className="label">E-mail</label>
-              <input className="input" value={perfil?.email ?? user?.email ?? ''} disabled style={{ opacity: 0.6, cursor: 'not-allowed' }} />
-              <p className="muted" style={{ fontSize: 12, margin: '6px 0 0' }}>A edição de e-mail chega junto com as notificações.</p>
+              <Label htmlFor="edit-email">E-mail</Label>
+              <Input id="edit-email" value={perfil?.email ?? user?.email ?? ''} disabled />
+              <p className="mt-1.5 text-xs text-slate">A edição de e-mail chega junto com as notificações.</p>
             </div>
-            {error && <p style={{ color: 'var(--danger)', fontSize: 14, margin: 0 }}>{error}</p>}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn-outline" onClick={() => setEditing(false)}>Cancelar</button>
-              <button className="btn-primary" style={{ width: 'auto' }} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</button>
-            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancelar</Button>
+              <Button disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
+            </DialogFooter>
           </form>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

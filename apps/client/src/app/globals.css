@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ==========================================================================
    BarberSync — Design Token System · tema "Azulejaria de esquina"
    Barbearia de bairro brasileira: porcelana clara + azulejo branco com rejunte,
@@ -157,32 +161,37 @@
     #f7f2e4 20px 24px
   );
 
-  /* ---- Aliases de compatibilidade (nomes antigos → tokens do tema) ------- */
-  --bg: var(--porcelain);
-  --bg-2: var(--tile);
-  --surface: var(--tile);
-  --surface-2: var(--tile-2);
+  /* shadcn: cor de borda padrão (preflight/Tailwind `border-border`) */
   --border: var(--line);
-  --text: var(--ink);
-  --text-muted: var(--slate);
-  --bone: var(--ink);
-  --smoke: var(--slate);
-  --pitch: var(--tile);
-  --espresso: var(--tile);
-  --walnut: var(--tile-2);
-  --oak: var(--line);
-  --oak-soft: var(--line);
-  --cream: var(--paper);
-  --brass-light: var(--verd);          /* dados em destaque (preço/hora) → verde */
-  --gold-1: var(--pole);               /* seleção → vermelho */
-  --gold-2: var(--verd);               /* preço → verde */
-  --gold-grad: linear-gradient(180deg, var(--pole), var(--pole-2));
-  --oxblood: var(--pole);
-  --success: var(--ok);
-  --radius: var(--r-card);
-  --radius-pill: var(--r-pill);
 }
 
+
+/* ---- Variáveis semânticas do shadcn/ui -> tokens Azulejaria ---------------
+   Referenciam os tokens do tema (var()), então claro/escuro/sistema funcionam
+   sem redefinir nada aqui. O tailwind.config.ts lê estas variáveis. */
+:root {
+  --background: var(--porcelain);
+  --foreground: var(--ink);
+  --card: var(--tile);
+  --card-foreground: var(--ink);
+  --popover: var(--tile);
+  --popover-foreground: var(--ink);
+  --primary: var(--pole);
+  --primary-foreground: var(--on-pole);
+  --secondary: var(--tile-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--tile-2);
+  --muted-foreground: var(--slate);
+  --accent: var(--tile-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--on-pole);
+  /* --border já é alias de --line (bloco acima) */
+  --input: var(--line);
+  --ring: var(--verd);
+}
+
+@layer base {
 * { box-sizing: border-box; }
 
 html, body {
@@ -210,24 +219,38 @@ body::before {
     repeating-linear-gradient(90deg, var(--grout-line) 0 1px, transparent 1px 46px);
 }
 
-h1, h2, h3, .display {
+h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0.3px;
   line-height: 1.05;
 }
 
+a { color: var(--pole); text-decoration: none; }
+input, button, select { font-family: inherit; }
+button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
+}
+
+/* Elementos de assinatura (não têm equivalente em utilitários Tailwind) */
+@layer utilities {
+  /* Rolagem horizontal sem barra visível (chips de dia) */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+/* Dados (horas, preços, KPIs): Space Mono com numerais tabulares */
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
 
-a { color: var(--pole); text-decoration: none; }
-input, button, select { font-family: inherit; }
-.muted { color: var(--slate); }
-
-/* ---- Assinatura: filete do poste de barbeiro --------------------------- */
+/* Filete do poste de barbeiro */
 .barber-rule {
   height: 5px;
   border-radius: 2px;
@@ -235,7 +258,7 @@ input, button, select { font-family: inherit; }
   box-shadow: inset 0 0 0 1px rgba(38, 36, 28, 0.08);
 }
 
-/* ---- Plaquinha de esmalte (chrome verde) ------------------------------- */
+/* Plaquinha de esmalte (chrome verde) */
 .plaque {
   display: inline-flex;
   align-items: center;
@@ -249,18 +272,7 @@ input, button, select { font-family: inherit; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 2px 6px -3px rgba(30, 58, 51, 0.5);
 }
 
-/* ---- Cards = azulejo --------------------------------------------------- */
-.card {
-  position: relative;
-  background: var(--tile);
-  border: 1px solid var(--line);
-  border-radius: var(--r-card);
-  padding: var(--s5);
-  box-shadow: var(--elev-hairline);
-}
-.card-raised { box-shadow: var(--elev-raised); }
-
-/* Assinatura: card em formato de comanda de barbearia (papel) */
+/* Comanda de barbearia (papel com filete de poste no topo) */
 .ticket {
   position: relative;
   background: linear-gradient(180deg, var(--paper), var(--paper-2));
@@ -276,11 +288,11 @@ input, button, select { font-family: inherit; }
   height: 5px;
   background: var(--pole-stripe);
 }
-/* Linha de picote (separa o canhoto da comanda) */
+/* Linha de picote: sangra até as bordas do .ticket (que usa p-5 = 20px) */
 .ticket-perf {
   position: relative;
   border-top: 1.5px dashed var(--line);
-  margin: var(--s3) calc(-1 * var(--s5));
+  margin: 12px -20px;
 }
 .ticket-perf::before,
 .ticket-perf::after {
@@ -295,162 +307,6 @@ input, button, select { font-family: inherit; }
 .ticket-perf::before { left: -8px; }
 .ticket-perf::after { right: -8px; }
 
-/* ---- Botões — esmalte -------------------------------------------------- */
-.btn-primary {
-  position: relative;
-  background: linear-gradient(180deg, var(--pole-bright), var(--pole-2));
-  color: var(--on-pole);
-  border: none;
-  border-radius: var(--r-pill);
-  padding: 13px 24px;
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  width: 100%;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 8px 18px -10px rgba(163, 46, 34, 0.7);
-  transition: transform 0.08s ease, filter 0.15s ease;
-}
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; filter: saturate(0.6); }
-.btn-primary:not(:disabled):hover { filter: brightness(1.06); }
-.btn-primary:not(:disabled):active { transform: translateY(1px); }
-
-.btn-outline {
-  background: transparent;
-  color: var(--verd);
-  border: 1.5px solid var(--verd);
-  border-radius: var(--r-pill);
-  padding: 11px 20px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.btn-outline:hover { background: var(--pine); color: var(--on-enamel); border-color: var(--pine); }
-
-.btn-success {
-  background: var(--ok);
-  color: #f3f7ef;
-  border: none;
-  border-radius: var(--r-pill);
-  padding: 11px 20px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-success:hover { filter: brightness(1.05); }
-
-.btn-danger {
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid color-mix(in srgb, var(--danger) 50%, transparent);
-  border-radius: var(--r-pill);
-  padding: 10px 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-danger:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); }
-
-/* ---- Inputs ------------------------------------------------------------ */
-.input, select.input {
-  width: 100%;
-  background: var(--tile);
-  border: 1px solid var(--line);
-  border-radius: var(--r-input);
-  padding: 13px 15px;
-  color: var(--ink);
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.input:focus {
-  border-color: var(--verd);
-  box-shadow: 0 0 0 3px var(--focus);
-}
-.input::placeholder { color: var(--slate); opacity: 0.7; }
-.label {
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--slate);
-  margin-bottom: var(--s2);
-}
-
-/* ---- Avatar = ficha de azulejo ---------------------------------------- */
-.avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 25%, var(--tile), var(--tile-2));
-  border: 1px solid var(--line);
-  color: var(--verd);
-  font-family: var(--font-display);
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
-}
-
-/* ---- Badges ------------------------------------------------------------ */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--r-pill);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-.badge-success { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
-.badge-confirm { background: color-mix(in srgb, var(--verd) 14%, transparent); color: var(--verd); border: 1px solid color-mix(in srgb, var(--verd) 40%, transparent); }
-.badge-pending { background: color-mix(in srgb, var(--slate) 15%, transparent); color: var(--slate); }
-.badge-danger  { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
-.badge-ouro    { background: color-mix(in srgb, var(--tier-ouro) 16%, transparent); color: var(--tier-ouro); }
-.badge-prata   { background: color-mix(in srgb, var(--tier-prata) 18%, transparent); color: var(--tier-prata); }
-.badge-bronze  { background: color-mix(in srgb, var(--tier-bronze) 17%, transparent); color: var(--tier-bronze); }
-
-/* ---- Progresso --------------------------------------------------------- */
-.progress-track {
-  width: 100%;
-  height: 8px;
-  background: var(--tile-2);
-  border-radius: var(--r-pill);
-  overflow: hidden;
-  border: 1px solid var(--line);
-}
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--verd), var(--verd-2));
-  border-radius: var(--r-pill);
-}
-
-/* ---- Alternador de tema (claro/escuro) -------------------------------- */
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px; height: 38px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--tile);
-  color: var(--slate);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-.theme-toggle:hover { color: var(--verd); border-color: var(--verd); }
-/* Variante sobre chrome verde */
-.theme-toggle.on-chrome {
-  border-color: rgba(244, 239, 224, 0.28);
-  background: transparent;
-  color: rgba(244, 239, 224, 0.82);
-}
-.theme-toggle.on-chrome:hover { color: #f7f2e4; border-color: rgba(244, 239, 224, 0.55); }
-
 /* posiciona conteúdo acima da textura de fundo */
 #app-root { position: relative; z-index: 1; }
+}

@@ -55,16 +55,25 @@ Dois temas na mesma paleta (claro = dia, escuro = noite). Tokens semânticos (`-
 - Sombra em 3 tiers semânticos (claros/suaves no tema Azulejaria): `--elev-hairline` (azulejo chapado) · `--elev-raised` · `--elev-float` (modais/hero). Nada de sombra genérica solta.
 - Espaçamento na escala de 4: `--s1..--s7`.
 
-## Componentes prontos (classes)
+## Componentes prontos — shadcn/ui + Tailwind (✅ 2026-10-21)
 
-`.card` / `.card-raised`, `.btn-primary` (gradiente latão) / `.btn-outline` / `.btn-danger` / `.btn-success`, `.input`, `.label` (mono, uppercase), `.badge-*` (success/confirm/pending/danger/ouro/prata/bronze), `.avatar`. Admin ainda tem `.kpi` (número em mono, filete de latão) e `.table`.
+Os três fronts usam **shadcn/ui (estilo v3, `forwardRef` — Next 14/React 18) + Tailwind 3.4**. As classes legadas (`.card`, `.btn-*`, `.input`, `.badge-*`, `.avatar`, `.kpi`, `.table`) **foram removidas** — não recrie. Use:
 
-Componentes React seguem os nomes do design: `AppointmentCard`, `BarberAvatar`, `StatusBadge`, `TierBadge`, `PaidBadge` (em `components/ui.tsx`).
+- Primitivos em `src/components/ui/*` (por app), com `cn()` de `@/lib/utils` (tailwind-merge estendido p/ `rounded-ticket|input|card|pill` e `shadow-hairline|raised|float`). Falta um componente? Escreva-o à mão no padrão shadcn v3 (o CLI atual gera estilo v4/React 19) e instale só a dep `@radix-ui/*` dele no app.
+- **Button** `variant`: default (gradiente pole, pill) · secondary · outline · ghost · destructive · danger (contorno) · success · enamel (pine) · link; `size` default/sm/lg/icon; `asChild`. **Não é `w-full` por padrão.**
+- **Badge** `variant`: default/secondary/outline/success/confirm/pending/danger/ouro/prata/bronze.
+- Seleção (chips de data/horário, Pix/Cartão/Dinheiro, Dia/Semana/Mês) → **ToggleGroup** (`type="single"` ignore deselect: `v && set(v)`). Modais → Dialog / AlertDialog (nunca `alert()`/`confirm()`); drawer → Sheet; feedback → `toast` do `sonner` (`<Toaster/>` no root layout); loading → Skeleton; erro → Alert.
+- Cores no Tailwind = tokens (`bg-pole`, `text-slate`, `border-line`, `text-on-enamel/65`…) via `color-mix`, então `/NN` funciona com hex. Semânticos do shadcn (`--primary`, `--card`…) apontam para os tokens em `globals.css`. **Prefira tokens a `dark:`** — `dark:` só segue `data-theme`, não o fallback `prefers-color-scheme`. `slate` sobrescreve a paleta padrão do Tailwind.
+- Ícones curados (`components/icons.tsx`) setam `width`, então o `[&_svg:not([width])]:size-4` dos primitivos respeita o `size` deles; lucide só nos internos do shadcn.
+- Assinaturas que continuam como classe em `globals.css`: `.barber-rule`, `.ticket`/`.ticket-perf`, `.plaque`, `.display`, `.mono`, textura de rejunte.
+- **Gotcha:** mudou `postcss.config.js`/`tailwind.config.ts` e o CSS veio com `@tailwind` literal? Pare o dev server, `rm -rf apps/<app>/.next`, suba de novo.
+
+Componentes React de domínio seguem os nomes do design: `BarberAvatar`, `StatusBadge`, `TierBadge`, `PaidBadge`, `KpiCard` (admin) em `components/ui.tsx`, montados sobre os primitivos.
 
 ## Responsivo (manter os dois modos)
 
-- **Client** (`apps/client/src/app/(app)/layout.tsx`): mobile = bottom tab bar; **≥900px** = top bar horizontal + conteúdo mais largo (styled-jsx global). Shell centralizado.
-- **Admin** (`apps/admin/src/app/(dashboard)/layout.tsx`): desktop = sidebar fixa; **≤900px** = header + bottom nav. Badge de pendentes no item Solicitações.
+- **Client** (`apps/client/src/app/(app)/layout.tsx`): mobile = bottom tab bar; **≥900px** = top bar horizontal + conteúdo mais largo. Shell centralizado.
+- **Admin** (`apps/admin/src/app/(dashboard)/layout.tsx`): desktop = sidebar fixa; **≤900px** = header + drawer (Sheet). Badge de pendentes no item Solicitações (atualiza via evento `bs:pendentes-changed`).
 
 ## Checklist ao entregar uma tela
 

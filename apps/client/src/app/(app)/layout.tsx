@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { IconHome, IconScissors, IconUser } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const TABS = [
   { href: '/home', label: 'Início', Icon: IconHome },
@@ -23,19 +25,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return <div style={{ padding: 48, textAlign: 'center' }} className="muted">Carregando…</div>;
+    return (
+      <div className="flex flex-col items-center gap-3 p-12" role="status" aria-label="Carregando">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-4 w-24" />
+      </div>
+    );
   }
 
   return (
-    <div className="cli-shell">
-      {/* Top bar (desktop) */}
-      <header className="cli-topbar">
-        <span className="cli-brand display">BarberSync</span>
-        <nav className="cli-topnav">
+    /* env(safe-area-inset-*) só é != 0 com viewport-fit=cover — protege o
+       conteúdo do notch e da barra de gestos quando instalado como PWA. */
+    <div className="min-h-dvh pt-[env(safe-area-inset-top)]">
+      {/* Top bar (desktop): barra superior de esmalte */}
+      <header className="hidden items-center justify-between border-b-[3px] border-pole bg-pine px-[max(24px,calc((100%_-_960px)/2))] py-4 min-[900px]:flex">
+        <span className="font-display text-[26px] tracking-[0.6px] text-on-enamel">BarberSync</span>
+        <nav className="flex items-center gap-1" aria-label="Principal">
           {TABS.map(({ href, label, Icon }) => {
             const active = pathname.startsWith(href);
             return (
-              <Link key={href} href={href} className={`cli-topnav-item ${active ? 'is-active' : ''}`}>
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-pill px-4 py-[9px] text-sm font-semibold text-on-enamel/70 hover:bg-white/10 hover:text-on-enamel',
+                  active && 'bg-pole text-on-enamel hover:bg-pole',
+                )}
+              >
                 <Icon size={18} />
                 {label}
               </Link>
@@ -45,94 +62,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <main className="cli-main">{children}</main>
+      <main className="mx-auto w-full max-w-[640px] pb-[calc(92px+env(safe-area-inset-bottom))] min-[900px]:max-w-[760px] min-[900px]:pb-10 min-[900px]:pt-2">
+        {children}
+      </main>
 
-      {/* Bottom bar (mobile) */}
-      <nav className="cli-bottombar">
+      {/* Bottom bar (mobile): friso de esmalte verde; o verde vaza até a borda e
+          os itens sobem acima da barra de gestos. */}
+      <nav
+        aria-label="Principal"
+        className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-[640px] -translate-x-1/2 border-t-[3px] border-pole bg-pine pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-14px_rgba(30,58,51,0.6)] min-[900px]:hidden"
+      >
         {TABS.map(({ href, label, Icon }) => {
           const active = pathname.startsWith(href);
           return (
-            <Link key={href} href={href} className={`cli-tab ${active ? 'is-active' : ''}`}>
-              {active && <span className="cli-tab-rule barber-rule" />}
+            <Link
+              key={href}
+              href={href}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'relative flex flex-1 flex-col items-center gap-[3px] pb-[15px] pt-3 text-[11px] font-semibold text-on-enamel/60',
+                active && 'text-on-enamel',
+              )}
+            >
+              {active && <span className="barber-rule absolute -top-[3px] h-[3px] w-10" />}
               <Icon size={22} />
               <span>{label}</span>
             </Link>
           );
         })}
       </nav>
-
-      <style jsx global>{`
-        /* env(safe-area-inset-*) só é != 0 com viewport-fit=cover — protege o
-           conteúdo do notch e da barra de gestos quando instalado como PWA. */
-        .cli-shell { min-height: 100dvh; padding-top: env(safe-area-inset-top); }
-        .cli-main {
-          width: 100%;
-          max-width: 640px;
-          margin: 0 auto;
-          padding-bottom: calc(92px + env(safe-area-inset-bottom));
-        }
-        .cli-topbar { display: none; }
-        /* Barra inferior = friso de esmalte verde da barbearia */
-        .cli-bottombar {
-          position: fixed;
-          bottom: 0; left: 50%; transform: translateX(-50%);
-          width: 100%; max-width: 640px;
-          display: flex;
-          background: var(--pine);
-          border-top: 3px solid var(--pole);
-          box-shadow: 0 -8px 24px -14px rgba(30, 58, 51, 0.6);
-          z-index: 20;
-          /* Verde vaza até a borda; os itens sobem acima da barra de gestos. */
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-        .cli-tab {
-          position: relative;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 3px;
-          padding: 12px 0 15px;
-          color: rgba(244, 239, 224, 0.62);
-          font-size: 11px;
-          font-weight: 600;
-        }
-        .cli-tab.is-active { color: #f7f2e4; }
-        .cli-tab-rule {
-          position: absolute;
-          top: -3px;
-          width: 40px;
-          height: 3px;
-        }
-
-        /* Desktop: vira barra superior de esmalte, esconde bottom bar */
-        @media (min-width: 900px) {
-          .cli-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--pine);
-            border-bottom: 3px solid var(--pole);
-            padding: 16px max(24px, calc((100% - 960px) / 2));
-          }
-          .cli-brand { font-size: 26px; letter-spacing: 0.6px; color: #f7f2e4; }
-          .cli-topnav { display: flex; align-items: center; gap: 4px; }
-          .cli-topnav-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 16px;
-            border-radius: var(--r-pill);
-            color: rgba(244, 239, 224, 0.68);
-            font-weight: 600;
-            font-size: 14px;
-          }
-          .cli-topnav-item:hover { color: #f7f2e4; background: rgba(255, 255, 255, 0.08); }
-          .cli-topnav-item.is-active { color: #f7f2e4; background: var(--pole); }
-          .cli-main { max-width: 760px; padding-bottom: 40px; padding-top: 8px; }
-          .cli-bottombar { display: none; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import './globals.css';
 import { fontBody, fontDisplay, fontMono } from './fonts';
 import { AuthProvider } from '@/lib/auth';
 import { PwaRegister } from '@/components/pwa-register';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: 'BarberSync',
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <div id="app-root">{children}</div>
         </AuthProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

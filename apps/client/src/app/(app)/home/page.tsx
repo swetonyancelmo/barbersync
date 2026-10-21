@@ -9,6 +9,11 @@ import { useSelectedTenant, TenantOption } from '@/lib/tenant';
 import { brl, formatDateTime } from '@/lib/format';
 import { BarberAvatar, StatusBadge } from '@/components/ui';
 import { IconStar, IconReceipt } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Barbeiro {
   id: string;
@@ -59,89 +64,93 @@ export default function HomePage() {
   }, [tenantId]);
 
   return (
-    <div style={{ padding: '24px 18px' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
+    <div className="px-[18px] py-6">
+      <header className="mb-[22px] flex items-center justify-between">
         <div>
-          <p className="muted" style={{ margin: 0, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Olá,</p>
-          <h1 style={{ margin: 0, fontSize: 30 }}>{user?.nome?.split(' ')[0]}</h1>
+          <p className="text-[13px] uppercase tracking-[0.08em] text-slate">Olá,</p>
+          <h1 className="text-[30px]">{user?.nome?.split(' ')[0]}</h1>
         </div>
-        <span className="badge badge-ouro"><IconStar size={13} /> <span className="mono">{pontos}</span> pts</span>
+        <Badge variant="ouro">
+          <IconStar size={13} /> <span className="mono">{pontos}</span> pts
+        </Badge>
       </header>
 
       {/* Seletor de barbearia (cliente global) */}
-      <label className="label">Barbearia</label>
-      <select
-        className="input"
-        value={tenantId ?? ''}
-        onChange={(e) => setTenantId(e.target.value)}
-        style={{ marginBottom: 20 }}
-      >
-        {tenants.map((t) => (
-          <option key={t.id} value={t.id}>{t.nome}</option>
-        ))}
-      </select>
+      <Label htmlFor="barbearia">Barbearia</Label>
+      <Select value={tenantId ?? ''} onValueChange={(v) => setTenantId(v)}>
+        <SelectTrigger id="barbearia" className="mb-5">
+          <SelectValue placeholder="Selecione a barbearia" />
+        </SelectTrigger>
+        <SelectContent>
+          {tenants.map((t) => (
+            <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Próximo agendamento — card em formato de comanda */}
-      <h3 style={{ fontSize: 18, marginBottom: 10 }}>Próximo agendamento</h3>
+      <h3 className="mb-2.5 text-lg">Próximo agendamento</h3>
       {proximo ? (
-        <div className="ticket" style={{ padding: 20, marginBottom: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className="ticket mb-6 p-5">
+          <div className="flex items-start justify-between">
             <div>
-              <strong style={{ fontSize: 16 }}>{proximo.servicos.map((s) => s.nome).join(', ')}</strong>
-              <p className="muted" style={{ margin: '4px 0 0', fontSize: 14 }}>com {proximo.barbeiro.user.nome}</p>
+              <strong className="text-base">{proximo.servicos.map((s) => s.nome).join(', ')}</strong>
+              <p className="mt-1 text-sm text-slate">com {proximo.barbeiro.user.nome}</p>
             </div>
             <StatusBadge status={proximo.status} />
           </div>
           <div className="ticket-perf" />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="mono" style={{ fontSize: 15, color: 'var(--brass-light)' }}>{formatDateTime(proximo.dataHora)}</span>
-            <span className="mono" style={{ fontSize: 15 }}>{brl(Number(proximo.valorTotal))}</span>
+          <div className="flex items-center justify-between">
+            <span className="mono text-[15px] text-verd">{formatDateTime(proximo.dataHora)}</span>
+            <span className="mono text-[15px]">{brl(Number(proximo.valorTotal))}</span>
           </div>
         </div>
       ) : (
-        <div className="card" style={{ marginBottom: 24, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: 28 }}>
-          <span className="muted"><IconReceipt size={28} /></span>
-          <p className="muted" style={{ margin: 0 }}>Você não tem agendamentos futuros.</p>
-        </div>
+        <Card className="mb-6 flex flex-col items-center gap-2.5 p-7 text-center">
+          <span className="text-slate"><IconReceipt size={28} /></span>
+          <p className="text-slate">Você não tem agendamentos futuros.</p>
+        </Card>
       )}
 
-      <Link href="/agendar">
-        <button className="btn-primary" style={{ marginBottom: 28 }}>Reservar novo horário</button>
-      </Link>
+      <Button asChild className="mb-7 w-full">
+        <Link href="/agendar">Reservar novo horário</Link>
+      </Button>
 
       {/* Barbeiros */}
-      <h3 style={{ fontSize: 18, marginBottom: 10 }}>Nossos barbeiros</h3>
+      <h3 className="mb-2.5 text-lg">Nossos barbeiros</h3>
       {barbeiros.length === 0 ? (
-        <p className="muted" style={{ fontSize: 14 }}>Nenhum barbeiro disponível nesta barbearia.</p>
+        <p className="text-sm text-slate">Nenhum barbeiro disponível nesta barbearia.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+        <div className="mb-7 flex flex-col gap-2.5">
           {barbeiros.map((b) => (
-            <div key={b.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14 }}>
+            <Card key={b.id} className="flex items-center gap-3 p-3.5">
               <BarberAvatar nome={b.user.nome} />
-              <div style={{ flex: 1 }}>
+              <div className="flex-1">
                 <strong>{b.user.nome}</strong>
-                <p className="muted" style={{ margin: 0, fontSize: 13 }}>{b.especialidade ?? 'Barbeiro'}</p>
+                <p className="text-[13px] text-slate">{b.especialidade ?? 'Barbeiro'}</p>
               </div>
-              <span className="badge badge-ouro"><IconStar size={12} /> <span className="mono">{Number(b.rating).toFixed(1)}</span></span>
-            </div>
+              <Badge variant="ouro">
+                <IconStar size={12} /> <span className="mono">{Number(b.rating).toFixed(1)}</span>
+              </Badge>
+            </Card>
           ))}
         </div>
       )}
 
       {/* Serviços */}
-      <h3 style={{ fontSize: 18, marginBottom: 10 }}>Serviços</h3>
+      <h3 className="mb-2.5 text-lg">Serviços</h3>
       {servicos.length === 0 ? (
-        <p className="muted" style={{ fontSize: 14 }}>Nenhum serviço cadastrado.</p>
+        <p className="text-sm text-slate">Nenhum serviço cadastrado.</p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
           {servicos.map((s) => (
-            <div key={s.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', padding: 14 }}>
+            <Card key={s.id} className="flex justify-between p-3.5">
               <div>
                 <strong>{s.nome}</strong>
-                <p className="muted mono" style={{ margin: 0, fontSize: 12 }}>{s.duracaoMin} min</p>
+                <p className="mono text-xs text-slate">{s.duracaoMin} min</p>
               </div>
-              <strong className="mono" style={{ color: 'var(--brass-light)' }}>{brl(Number(s.preco))}</strong>
-            </div>
+              <strong className="mono text-verd">{brl(Number(s.preco))}</strong>
+            </Card>
           ))}
         </div>
       )}

@@ -45,6 +45,8 @@ barbersync/
 
 **CORS multi-origem (✅ 2026-07-25):** `apps/api/src/main.ts` monta a allowlist de `CORS_ORIGINS` (prod, lista por vírgula) + `CLIENT_ORIGIN`/`ADMIN_ORIGIN` (dev, também aceitam lista — ex.: localhost + IP da LAN p/ testar no celular). Usa callback (deixa passar requisições sem header `Origin`, ex.: health check) e **nunca** `origin:'*'` (a API responde com `credentials:true`). Escuta em `0.0.0.0`.
 
+**shadcn/ui + Tailwind nos 3 fronts (✅ 2026-10-21):** client, admin e site migraram do CSS artesanal para **shadcn/ui estilo v3 (`forwardRef`) + Tailwind 3.4** (Tailwind v4/shadcn latest descartados: assumem React 19). Cada app tem `tailwind.config.ts`, `postcss.config.js`, `components.json`, `src/lib/utils.ts` (`cn`) e `src/components/ui/*`. Os tokens Azulejaria continuam a fonte da verdade em `globals.css`; as variáveis do shadcn apontam para eles. `alert()`/`confirm()` nativos viraram AlertDialog/toast (sonner). Padrões e gotchas no skill `barbersync-ui`.
+
 **Defaults aplicados (marcados no código, podem mudar):** fidelidade recalculada em tempo real a cada pagamento (regra inferida, centralizada em `@barbersync/shared`); barbeiro "Master" = só label; lembrete "1h antes" com tick de 5min (cliente recebe entre ~55–60min antes).
 
 **Deploy / produção (✅ preparado 2026-07-25):** alvo **free tier, custo zero** — Postgres na **Neon**, API no **Render** (Blueprint `render.yaml` na raiz), fronts na **Vercel** (`vercel.json` por app, Root Directory `apps/<app>`). O passo a passo dos dashboards e a tabela completa de env vars vivem em **`DEPLOY.md`**, que é **local e não versionado** (está no `.gitignore`) — se você não o vê no working tree, peça ao Swetony antes de assumir qualquer coisa sobre a infra. Pontos que mudaram no código:

@@ -4,7 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { ReportPeriodo, ReportSummary, WEEKDAYS_SHORT } from '@barbersync/shared';
 import { api, apiDownload } from '@/lib/api';
 import { brl, dataLonga, isoDate } from '@/lib/format';
-import { TierBadge } from '@/components/ui';
+import { toast } from 'sonner';
+import { KpiCard, TierBadge } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const PERIODOS: { value: ReportPeriodo; label: string }[] = [
   { value: 'dia', label: 'Dia' },
@@ -54,51 +61,47 @@ export default function RelatoriosPage() {
         `relatorio-${periodo}-${data}.pdf`,
       );
     } catch {
-      alert('Não foi possível gerar o PDF. Tente novamente.');
+      toast.error('Não foi possível gerar o PDF. Tente novamente.');
     } finally {
       setExportando(false);
     }
   }
 
   const k = summary?.kpis;
+  const carregando = summary === null && !erro;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 style={{ fontSize: 28, marginTop: 0, marginBottom: 8 }}>Relatórios</h1>
-          <div className="barber-rule" style={{ width: 60, marginBottom: 20 }} />
+          <h1 className="mb-2 mt-0 text-[28px]">Relatórios</h1>
+          <div className="barber-rule mb-5 w-[60px]" />
         </div>
-        <button className="btn-outline" onClick={exportar} disabled={exportando || !summary}>
+        <Button variant="outline" onClick={exportar} disabled={exportando || !summary}>
           {exportando ? 'Gerando PDF…' : 'Exportar PDF'}
-        </button>
+        </Button>
       </div>
 
       {/* Controles de período */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div className="mb-[22px] flex flex-wrap items-center gap-2.5">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={periodo}
+          onValueChange={(v) => v && setPeriodo(v as ReportPeriodo)}
+          aria-label="Período do relatório"
+        >
           {PERIODOS.map((p) => (
-            <button
-              key={p.value}
-              className="btn-outline"
-              onClick={() => setPeriodo(p.value)}
-              style={
-                periodo === p.value
-                  ? { borderColor: 'var(--pole)', color: 'var(--pole)', fontWeight: 700 }
-                  : undefined
-              }
-            >
-              {p.label}
-            </button>
+            <ToggleGroupItem key={p.value} value={p.value}>{p.label}</ToggleGroupItem>
           ))}
+        </ToggleGroup>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" onClick={() => navegar(-1)} aria-label="Período anterior">‹</Button>
+          <span className="min-w-[170px] text-center text-sm font-semibold">{rotulo}</span>
+          <Button variant="outline" size="icon" onClick={() => navegar(1)} aria-label="Próximo período">›</Button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="btn-outline" onClick={() => navegar(-1)} aria-label="Período anterior">‹</button>
-          <span style={{ minWidth: 170, textAlign: 'center', fontWeight: 600, fontSize: 14 }}>{rotulo}</span>
-          <button className="btn-outline" onClick={() => navegar(1)} aria-label="Próximo período">›</button>
-        </div>
-        <button
-          className="btn-outline"
+        <Button
+          variant="outline"
           onClick={() => {
             const d = new Date();
             d.setHours(0, 0, 0, 0);
@@ -106,83 +109,72 @@ export default function RelatoriosPage() {
           }}
         >
           Hoje
-        </button>
+        </Button>
       </div>
 
       {erro && (
-        <div className="card" style={{ marginBottom: 22 }}>
-          <p className="muted" style={{ margin: 0, textAlign: 'center' }}>Não foi possível carregar o relatório.</p>
-        </div>
+        <Alert variant="destructive" className="mb-[22px]">
+          <AlertDescription>Não foi possível carregar o relatório.</AlertDescription>
+        </Alert>
       )}
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14, marginBottom: 24 }}>
-        <div className="kpi">
-          <p className="kpi-label">Recebido</p>
-          <div className="kpi-value" style={{ color: 'var(--success)' }}>{brl(k?.recebido ?? 0)}</div>
-        </div>
-        <div className="kpi">
-          <p className="kpi-label">Atendimentos concluídos</p>
-          <div className="kpi-value">{k?.atendimentosConcluidos ?? 0}</div>
-        </div>
-        <div className="kpi">
-          <p className="kpi-label">Ticket médio</p>
-          <div className="kpi-value">{brl(k?.ticketMedio ?? 0)}</div>
-        </div>
+      <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3.5">
+        <KpiCard label="Recebido" carregando={carregando} valueClassName="text-ok" value={brl(k?.recebido ?? 0)} />
+        <KpiCard label="Atendimentos concluídos" carregando={carregando} value={k?.atendimentosConcluidos ?? 0} />
+        <KpiCard label="Ticket médio" carregando={carregando} value={brl(k?.ticketMedio ?? 0)} />
       </div>
 
       {/* Gráfico: só faz sentido com mais de um dia (semana/mês) */}
       {summary && periodo !== 'dia' && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <strong style={{ display: 'block', marginBottom: 14 }}>Recebido por dia</strong>
+        <Card className="mb-6 p-4">
+          <strong className="mb-3.5 block">Recebido por dia</strong>
           {summary.kpis.recebido === 0 ? (
-            <p className="muted" style={{ margin: 0, textAlign: 'center', padding: '18px 0' }}>
-              Sem recebimentos no período.
-            </p>
+            <p className="py-[18px] text-center text-slate">Sem recebimentos no período.</p>
           ) : (
             <ReceitaBars serie={summary.serie} compacto={periodo === 'mes'} />
           )}
-        </div>
+        </Card>
       )}
 
       {/* Por barbeiro */}
-      <SecaoTabela titulo="Recebido por barbeiro" vazio="Nenhum pagamento no período.">
+      <SecaoTabela titulo="Recebido por barbeiro" vazio="Nenhum pagamento no período." carregando={carregando}>
         {summary && summary.porBarbeiro.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr><th>Barbeiro</th><th>Atendimentos</th><th>Recebido</th></tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>Barbeiro</TableHead><TableHead>Atendimentos</TableHead><TableHead>Recebido</TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
               {summary.porBarbeiro.map((b) => (
-                <tr key={b.barbeiroId}>
-                  <td>{b.nome}</td>
-                  <td className="mono">{b.atendimentos}</td>
-                  <td className="mono" style={{ color: 'var(--verd)' }}>{brl(b.recebido)}</td>
-                </tr>
+                <TableRow key={b.barbeiroId}>
+                  <TableCell className="font-semibold">{b.nome}</TableCell>
+                  <TableCell className="font-mono">{b.atendimentos}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-verd">{brl(b.recebido)}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </SecaoTabela>
 
       {/* Clientes mais fiéis */}
-      <SecaoTabela titulo="Clientes mais fiéis" vazio="Nenhum atendimento concluído no período.">
+      <SecaoTabela titulo="Clientes mais fiéis" vazio="Nenhum atendimento concluído no período." carregando={carregando}>
         {summary && summary.topClientes.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr><th>Cliente</th><th>Atendimentos</th><th>Total gasto</th><th>Tier</th></tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>Cliente</TableHead><TableHead>Atendimentos</TableHead><TableHead>Total gasto</TableHead><TableHead>Tier</TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
               {summary.topClientes.map((c) => (
-                <tr key={c.clienteId}>
-                  <td>{c.nome}</td>
-                  <td className="mono">{c.atendimentos}</td>
-                  <td className="mono" style={{ color: 'var(--verd)' }}>{brl(c.totalGasto)}</td>
-                  <td><TierBadge tier={c.tier} /></td>
-                </tr>
+                <TableRow key={c.clienteId}>
+                  <TableCell className="font-semibold">{c.nome}</TableCell>
+                  <TableCell className="font-mono">{c.atendimentos}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-verd">{brl(c.totalGasto)}</TableCell>
+                  <TableCell><TierBadge tier={c.tier} /></TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </SecaoTabela>
 
@@ -191,22 +183,23 @@ export default function RelatoriosPage() {
         titulo="Serviços mais usados"
         nota="Receita estimada pelo preço atual do catálogo."
         vazio="Nenhum serviço concluído no período."
+        carregando={carregando}
       >
         {summary && summary.topServicos.length > 0 && (
-          <table className="table">
-            <thead>
-              <tr><th>Serviço</th><th>Vezes</th><th>Receita aprox.</th></tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow><TableHead>Serviço</TableHead><TableHead>Vezes</TableHead><TableHead>Receita aprox.</TableHead></TableRow>
+            </TableHeader>
+            <TableBody>
               {summary.topServicos.map((s) => (
-                <tr key={s.servicoId}>
-                  <td>{s.nome}</td>
-                  <td className="mono">{s.vezes}</td>
-                  <td className="mono" style={{ color: 'var(--verd)' }}>{brl(s.receitaAprox)}</td>
-                </tr>
+                <TableRow key={s.servicoId}>
+                  <TableCell className="font-semibold">{s.nome}</TableCell>
+                  <TableCell className="font-mono">{s.vezes}</TableCell>
+                  <TableCell className="whitespace-nowrap font-mono text-verd">{brl(s.receitaAprox)}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </SecaoTabela>
     </div>
@@ -218,31 +211,35 @@ function SecaoTabela({
   titulo,
   nota,
   vazio,
+  carregando,
   children,
 }: {
   titulo: string;
   nota?: string;
   vazio: string;
+  carregando?: boolean;
   children: React.ReactNode;
 }) {
   const temConteudo = Boolean(children);
   return (
-    <div className="card" style={{ marginBottom: 24, padding: 0 }}>
-      <div style={{ padding: '16px 16px 0' }}>
+    <Card className="mb-6 overflow-hidden p-0">
+      <div className="px-4 pt-4">
         <strong>{titulo}</strong>
-        {nota && <p className="muted" style={{ margin: '4px 0 0', fontSize: 12 }}>{nota}</p>}
+        {nota && <p className="mt-1 text-xs text-slate">{nota}</p>}
       </div>
-      {temConteudo ? (
-        <div className="table-wrap" style={{ marginTop: 10 }}>{children}</div>
+      {carregando ? (
+        <div className="flex flex-col gap-2 p-4"><Skeleton className="h-7 w-full" /><Skeleton className="h-7 w-full" /></div>
+      ) : temConteudo ? (
+        <div className="mt-2.5">{children}</div>
       ) : (
-        <p className="muted" style={{ padding: '18px 16px 20px', margin: 0, textAlign: 'center' }}>{vazio}</p>
+        <p className="px-4 pb-5 pt-[18px] text-center text-slate">{vazio}</p>
       )}
-    </div>
+    </Card>
   );
 }
 
 /**
- * Barras de recebido por dia — série única em --verd, sem lib.
+ * Barras de recebido por dia — série única em verd, sem lib.
  * Tooltip nativo por barra; rótulos de dia embaixo (esparsos no mês).
  */
 function ReceitaBars({
@@ -256,8 +253,8 @@ function ReceitaBars({
   const ALTURA = 140;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: ALTURA + 26 }}>
-      {serie.map((d, i) => {
+    <div className="flex items-end gap-0.5" style={{ height: ALTURA + 26 }}>
+      {serie.map((d) => {
         const h = d.recebido > 0 ? Math.max(4, Math.round((d.recebido / max) * ALTURA)) : 0;
         const diaNum = Number(d.dia.slice(8, 10));
         const rotulo = compacto
@@ -269,41 +266,18 @@ function ReceitaBars({
           <div
             key={d.dia}
             title={`${formatDiaCurto(d.dia)} — ${brl(d.recebido)} (${d.atendimentos} pagamento${d.atendimentos === 1 ? '' : 's'})`}
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              height: '100%',
-              cursor: 'default',
-              minWidth: 0,
-            }}
+            className="group flex h-full min-w-0 flex-1 cursor-default flex-col items-center justify-end"
           >
             <div
-              className="receita-bar"
-              style={{
-                width: '100%',
-                maxWidth: compacto ? 18 : 34,
-                height: h,
-                background: 'var(--verd)',
-                borderRadius: '4px 4px 0 0',
-                opacity: d.recebido > 0 ? 1 : 0,
-              }}
+              className={`w-full rounded-t bg-verd transition-colors group-hover:bg-pole ${compacto ? 'max-w-[18px]' : 'max-w-[34px]'} ${d.recebido > 0 ? '' : 'opacity-0'}`}
+              style={{ height: h }}
             />
             {/* Linha de base sempre visível, mesmo em dia zerado */}
-            <div style={{ width: '100%', borderTop: '1px solid var(--line)' }} />
-            <span className="mono muted" style={{ fontSize: 10, marginTop: 4, whiteSpace: 'nowrap' }}>
-              {rotulo}
-            </span>
+            <div className="w-full border-t border-line" />
+            <span className="mt-1 whitespace-nowrap font-mono text-[10px] text-slate">{rotulo}</span>
           </div>
         );
       })}
-      <style jsx>{`
-        div[title]:hover .receita-bar {
-          background: var(--pole);
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { IconMoon, IconSun } from './icons';
 
 type Theme = 'light' | 'dark';
@@ -31,14 +33,20 @@ export function ThemeToggle({ chrome = false }: { chrome?: boolean }) {
 
   const escuro = theme === 'dark';
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={toggle}
-      className={`theme-toggle${chrome ? ' on-chrome' : ''}`}
+      className={cn(
+        'size-[38px] shrink-0 border border-line bg-tile text-slate hover:border-verd hover:bg-tile hover:text-verd',
+        chrome &&
+          'border-on-enamel/30 bg-transparent text-on-enamel/80 hover:border-on-enamel/55 hover:bg-transparent hover:text-on-enamel',
+      )}
       aria-label={escuro ? 'Ativar tema claro' : 'Ativar tema escuro'}
       title={escuro ? 'Tema claro' : 'Tema escuro'}
     >
       {escuro ? <IconSun size={18} /> : <IconMoon size={18} />}
-    </button>
+    </Button>
   );
 }
