@@ -11,10 +11,8 @@ export const metadata: Metadata = {
   applicationName: 'BarberSync',
   // iOS não lê o manifest: precisa destas metas para abrir em tela cheia.
   appleWebApp: { capable: true, title: 'BarberSync', statusBarStyle: 'default' },
-  icons: {
-    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
-    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180' }],
-  },
+  // Favicon/ícones: app/favicon.ico, app/icon.svg e app/apple-icon.png (logo
+  // do kit barbersync-brand) — o Next injeta as tags pela convenção de arquivo.
   formatDetection: { telephone: false },
 };
 

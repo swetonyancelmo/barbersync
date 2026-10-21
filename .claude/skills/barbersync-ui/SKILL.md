@@ -47,6 +47,7 @@ Dois temas na mesma paleta (claro = dia, escuro = noite). Tokens semânticos (`-
 - **`.barber-rule`** — filete do **poste de barbeiro** (listras vermelho/creme/azul). Use com parcimônia: indicador de aba/menu ativo, stepper do agendamento, sob títulos de seção (`width` pequena).
 - **`.ticket` + `.ticket-perf`** — card em formato de comanda de papel (`--cream`, cantos ~retos, filete do poste no topo, picote). Use no "próximo agendamento" e na confirmação. Não use para tudo.
 - **`.plaque`** — plaquinha de esmalte verde (fundo `--pine`, texto creme) p/ título de seção sobre placa. Chrome (nav/sidebar) usa a mesma superfície verde.
+- **Marca**: nunca escreva "BarberSync" como logotipo em texto nem use tesoura do `icons.tsx` como marca — use `<Logo />` (`components/logo.tsx`; `variant` horizontal/stacked/icon, `tone="on-dark"` sobre o chrome verde, tamanho pela altura: `className="h-8 w-auto"`). Gerado de `barbersync-brand/svg` por `scripts/gen-logo.py`.
 - **Ícones**: set curado inline em `components/icons.tsx` (traço 1.5, grade 24). **Sem emoji.** Precisa de um ícone novo? Adicione lá no mesmo estilo. Use ícone só onde ajuda (nav, status, estados vazios).
 
 ## Escalas (evite uniformidade)

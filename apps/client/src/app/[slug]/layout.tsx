@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Logo } from '@/components/logo';
 import { AccountLink } from '@/components/account-link';
 
 /**
@@ -17,11 +18,8 @@ export default function BarbeariaLayout({
   return (
     <div className="min-h-dvh pt-[env(safe-area-inset-top)]">
       <header className="flex items-center justify-between gap-3 border-b-[3px] border-pole bg-pine px-[max(18px,calc((100%_-_760px)/2))] py-3">
-        <Link
-          href={`/${params.slug}`}
-          className="font-display text-[22px] tracking-[0.6px] text-on-enamel"
-        >
-          BarberSync
+        <Link href={`/${params.slug}`} aria-label="BarberSync — página da barbearia">
+          <Logo tone="on-dark" title="" className="h-8 w-auto" />
         </Link>
         <div className="flex items-center gap-1">
           <AccountLink />

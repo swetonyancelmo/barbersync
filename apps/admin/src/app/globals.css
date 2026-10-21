@@ -249,3 +249,31 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
     display: none;
   }
 }
+
+/* ---- Logo oficial (components/logo.tsx) --------------------------------
+   Cores exatas do kit barbersync-brand: versão p/ fundo claro e p/ fundo
+   escuro. Segue o tema (inclusive o fallback do sistema); .bs-logo-on-dark
+   fixa a versão escura p/ o chrome verde-esmalte, escuro nos dois temas. */
+.bs-logo {
+  --logo-ink: #1b1510;
+  --logo-green: #2f6553;
+  --logo-coral: #b83a2b;
+  --logo-navy: #3a5a9c;
+  --logo-paper: #ffffff;
+}
+:root[data-theme='dark'] .bs-logo,
+.bs-logo-on-dark {
+  --logo-ink: #f0e6d2;
+  --logo-green: #5e9c86;
+  --logo-coral: #d9503f;
+  --logo-navy: #3a5a9c;
+  --logo-paper: #f0e6d2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .bs-logo {
+    --logo-ink: #f0e6d2;
+    --logo-green: #5e9c86;
+    --logo-coral: #d9503f;
+    --logo-paper: #f0e6d2;
+  }
+}

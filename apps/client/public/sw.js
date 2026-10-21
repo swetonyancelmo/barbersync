@@ -9,7 +9,7 @@
  *
  * Suba o VERSION ao mudar as regras: o activate limpa os caches antigos.
  */
-const VERSION = 'v1';
+const VERSION = 'v2'; // v2: ícones da nova logo
 const STATIC_CACHE = `bs-static-${VERSION}`;
 const PAGE_CACHE = `bs-pages-${VERSION}`;
 const OFFLINE_URL = '/offline.html';

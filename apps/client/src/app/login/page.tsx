@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { IconRazor } from '@/components/icons';
+import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,11 +55,9 @@ function LoginForm() {
         <ThemeToggle />
       </div>
       <div className="mb-8 text-center">
-        <div className="mb-1.5 inline-flex text-brass">
-          <IconRazor size={40} />
-        </div>
-        <h1 className="mb-2.5 mt-1 text-[40px] tracking-[0.5px]">BarberSync</h1>
-        <div className="barber-rule mx-auto mb-3.5 w-[72px]" />
+        <h1 className="mb-4">
+          <Logo variant="stacked" className="mx-auto h-[132px] w-auto" />
+        </h1>
         <p className="text-slate">
           {vindoDoAgendamento
             ? mode === 'login'

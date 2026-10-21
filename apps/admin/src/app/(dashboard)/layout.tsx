@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Logo } from '@/components/logo';
 import { BarberAvatar } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
@@ -56,9 +57,8 @@ function ChromeContent({
 }) {
   return (
     <>
-      <div className="flex items-center gap-2.5 px-5 pb-3.5 pt-[22px] text-on-enamel">
-        <IconScissors size={22} />
-        <span className="display text-[22px]">BarberSync</span>
+      <div className="px-5 pb-3.5 pt-[22px]">
+        <Logo tone="on-dark" className="h-9 w-auto" />
       </div>
       <div className="barber-rule mx-5 mb-3" />
       <nav aria-label="Menu principal" className="flex-1 overflow-y-auto px-3">
@@ -161,10 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="absolute right-px top-px size-2 rounded-pill border-[1.5px] border-pine bg-pole" />
               )}
             </button>
-            <span className="display flex items-center gap-2 text-on-enamel">
-              <IconScissors size={18} />
-              BarberSync
-            </span>
+            <Logo tone="on-dark" className="h-7 w-auto" />
           </div>
           <div className="flex items-center gap-2.5">
             <ThemeToggle chrome />

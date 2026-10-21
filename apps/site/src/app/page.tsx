@@ -1,3 +1,4 @@
+import { Logo } from '@/components/logo';
 import { MobileNav } from '@/components/mobile-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -13,7 +14,6 @@ import {
   IconCheck,
   IconMoney,
   IconPhone,
-  IconScissors,
   IconStar,
   IconUsers,
 } from '@/components/icons';
@@ -119,9 +119,8 @@ export default function LandingPage() {
       {/* ---- Navbar ---- */}
       <header className="sticky top-0 z-30 border-b border-line bg-porcelain/90 backdrop-blur-[10px] backdrop-saturate-[1.4]">
         <div className={`${WRAP} flex items-center justify-between gap-5 py-3.5`}>
-          <a href="#topo" className="inline-flex items-center gap-[9px] font-display text-[22px] tracking-[0.5px] text-ink">
-            <IconScissors size={22} className="text-verd" />
-            BarberSync
+          <a href="#topo" aria-label="BarberSync — início" className="shrink-0">
+            <Logo title="" className="h-9 w-auto" />
           </a>
           <nav className="ml-3 hidden flex-1 gap-1.5 md:flex" aria-label="Seções">
             {NAV.map((l) => (
@@ -328,10 +327,7 @@ export default function LandingPage() {
       <footer className="bg-porcelain">
         <Separator />
         <div className={`${WRAP} flex flex-col items-center gap-4 py-7 text-center md:flex-row md:gap-5 md:text-left`}>
-          <span className="inline-flex items-center gap-[9px] font-display text-[22px] tracking-[0.5px] text-ink">
-            <IconScissors size={20} className="text-verd" />
-            BarberSync
-          </span>
+          <Logo className="h-8 w-auto shrink-0" />
           <nav className="flex flex-wrap justify-center gap-x-5 gap-y-3.5 md:flex-1 md:justify-start md:gap-[18px]" aria-label="Rodapé">
             {[
               ['#recursos', 'Recursos'],

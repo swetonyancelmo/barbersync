@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import PDFDocument from 'pdfkit';
 import { ReportSummary } from '@barbersync/shared';
 
@@ -16,6 +18,21 @@ const PAGE_WIDTH = 595.28; // A4
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
 
 const PERIODO_LABEL = { dia: 'Dia', semana: 'Semana', mes: 'Mês' } as const;
+
+/** Logo oficial (kit barbersync-brand), 434:120. src/assets → dist/assets via nest-cli. */
+const LOGO_ALTURA = 26;
+const LOGO_LARGURA = (LOGO_ALTURA * 434) / 120;
+const LOGO = carregarLogo();
+
+function carregarLogo(): Buffer | null {
+  try {
+    return readFileSync(join(__dirname, '..', '..', 'assets', 'brand', 'barbersync-logo-horizontal-light-bg-h128.png'));
+  } catch (err) {
+    // Sem a logo o relatório continua saindo — só sem a marca no cabeçalho.
+    new Logger('ReportsPdfService').warn(`Logo do PDF não encontrada: ${(err as Error).message}`);
+    return null;
+  }
+}
 
 @Injectable()
 export class ReportsPdfService {
@@ -45,10 +62,16 @@ export class ReportsPdfService {
     doc.rect(0, 6, PAGE_WIDTH, 4).fill(CREAM);
     doc.rect(0, 10, PAGE_WIDTH, 4).fill(NAVY);
 
+    if (LOGO) {
+      doc.image(LOGO, PAGE_WIDTH - MARGIN - LOGO_LARGURA, MARGIN - 2, { height: LOGO_ALTURA });
+    }
+    // Largura reservada p/ o texto não passar por baixo da logo.
+    const larguraTexto = LOGO ? CONTENT_WIDTH - LOGO_LARGURA - 16 : CONTENT_WIDTH;
+
     doc.y = MARGIN;
-    doc.fillColor(PINE).font('Helvetica-Bold').fontSize(18).text(barbeariaNome);
+    doc.fillColor(PINE).font('Helvetica-Bold').fontSize(18).text(barbeariaNome, MARGIN, MARGIN, { width: larguraTexto });
     doc.moveDown(0.2);
-    doc.fillColor(INK).fontSize(13).text(`Relatório — ${PERIODO_LABEL[summary.periodo.tipo]}`);
+    doc.fillColor(INK).fontSize(13).text(`Relatório — ${PERIODO_LABEL[summary.periodo.tipo]}`, { width: larguraTexto });
     doc.moveDown(0.2);
     const inicio = new Date(summary.periodo.inicio);
     const fim = new Date(new Date(summary.periodo.fim).getTime() - 86_400_000);

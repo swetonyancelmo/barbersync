@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { IconHome, IconScissors, IconUser } from '@/components/icons';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -39,7 +40,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-dvh pt-[env(safe-area-inset-top)]">
       {/* Top bar (desktop): barra superior de esmalte */}
       <header className="hidden items-center justify-between border-b-[3px] border-pole bg-pine px-[max(24px,calc((100%_-_960px)/2))] py-4 min-[900px]:flex">
-        <span className="font-display text-[26px] tracking-[0.6px] text-on-enamel">BarberSync</span>
+        <Logo tone="on-dark" className="h-9 w-auto" />
         <nav className="flex items-center gap-1" aria-label="Principal">
           {TABS.map(({ href, label, Icon }) => {
             const active = pathname.startsWith(href);

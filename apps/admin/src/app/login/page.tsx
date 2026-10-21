@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
-import { IconScissors } from '@/components/icons';
+import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -51,11 +51,9 @@ export default function LoginPage() {
       </div>
       <div className="w-full max-w-[400px]">
         <div className="mb-[30px] text-center">
-          <div className="mb-1.5 inline-flex text-brass">
-            <IconScissors size={38} />
-          </div>
-          <h1 className="mb-2.5 mt-1 text-4xl tracking-[0.5px]">BarberSync</h1>
-          <div className="barber-rule mx-auto mb-3.5 w-[68px]" />
+          <h1 className="mb-4">
+            <Logo variant="stacked" className="mx-auto h-[124px] w-auto" />
+          </h1>
           <p className="m-0 text-slate">
             {mode === 'login' ? 'Acesse seu painel' : 'Cadastre sua barbearia'}
           </p>
