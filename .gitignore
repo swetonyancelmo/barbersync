@@ -21,3 +21,6 @@ npm-debug.log*
 Thumbs.db
 .idea/
 *.tsbuildinfo
+
+# Estado local do oh-my-claudecode (orquestrador do Claude Code) — nunca versionar
+.omc/
