@@ -1,4 +1,4 @@
-import type { PublicBarbearia } from '@barbersync/shared';
+import type { GradeHorarios, PublicBarbearia } from '@barbersync/shared';
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333/api';
@@ -17,15 +17,17 @@ export async function fetchBarbearia(slug: string): Promise<PublicBarbearia | nu
   return res.json();
 }
 
-export interface Slot { hora: string; disponivel: boolean; }
-export interface Grade { aberto: boolean; manha: Slot[]; tarde: Slot[]; }
+export type Grade = GradeHorarios;
 
 export async function fetchDisponibilidade(
   slug: string,
   barbeiroId: string,
   data: string,
+  /** Duração somada dos serviços: esconde horário que não comporta o atendimento. */
+  duracao?: number,
 ): Promise<Grade> {
   const qs = new URLSearchParams({ barbeiroId, data });
+  if (duracao) qs.set('duracao', String(duracao));
   const res = await fetch(
     `${API_URL}/public/barbearias/${encodeURIComponent(slug)}/disponibilidade?${qs}`,
     { cache: 'no-store' },

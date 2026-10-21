@@ -1,5 +1,6 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
-import { IsDateString, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsDateString, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { PublicBarbearia } from '@barbersync/shared';
 import { Public } from '../../common/decorators/public.decorator';
 import { TenantsService } from '../tenants/tenants.service';
@@ -14,6 +15,14 @@ class PublicAvailabilityQueryDto {
   /** Data no formato YYYY-MM-DD. */
   @IsDateString()
   data: string;
+
+  /** Duração somada dos serviços escolhidos (min) — esconde slot que estouraria o bloco. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(5)
+  @Max(480)
+  duracao?: number;
 }
 
 /**
@@ -70,6 +79,6 @@ export class StorefrontController {
     const tenant = await this.tenants.findBySlug(slug);
     const barbeiro = await this.barbers.assertInTenant(q.barbeiroId, tenant.id);
     if (!barbeiro.ativo) throw new NotFoundException('Barbeiro não encontrado.');
-    return this.appointments.getAvailability(tenant.id, barbeiro.id, q.data);
+    return this.appointments.getAvailability(tenant.id, barbeiro.id, q.data, q.duracao);
   }
 }

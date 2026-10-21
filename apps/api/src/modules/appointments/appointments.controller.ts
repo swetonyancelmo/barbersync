@@ -43,7 +43,7 @@ export class AppointmentsController {
   ) {
     const tenantId = resolveTenantId(user, q.tenantId);
     if (user.role === UserRole.CLIENTE) await this.tenants.assertExists(tenantId);
-    return this.appointments.getAvailability(tenantId, q.barbeiroId, q.data);
+    return this.appointments.getAvailability(tenantId, q.barbeiroId, q.data, q.duracao);
   }
 
   @Roles(UserRole.CLIENTE)

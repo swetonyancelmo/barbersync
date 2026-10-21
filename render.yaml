@@ -45,6 +45,10 @@ services:
         value: BarberSync
       - key: REPORTS_TIMEZONE
         value: America/Sao_Paulo
+      # Fuso do processo Node: grade de horários, "horário já passou", folgas e
+      # lembrete usam Date local. Sem isto o Render roda em UTC (grade 3h errada).
+      - key: TZ
+        value: America/Sao_Paulo
 
       # ---- Preencher no dashboard (sync: false = Render pergunta / não versiona) ----
       # Connection string da Neon (postgresql://...?sslmode=require)

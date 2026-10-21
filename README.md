@@ -14,7 +14,7 @@ confirmação, perfil com **fidelidade** (pontos/tier), histórico e **edição 
 
 **Painel do barbeiro/admin:** agenda diária com KPIs e **registro de pagamento por
 linha**, solicitações (confirmar/recusar), clientes com tier, financeiro, **relatórios**
-(com export PDF), **serviços** (CRUD), **horários** de funcionamento (dias + faixas) e
+(com export PDF), **serviços** (CRUD), **horários** de funcionamento (dias + faixas, com horário próprio e folgas por barbeiro) e
 equipe. No mobile a navegação é um **menu drawer** (hambúrguer).
 
 **Landing page** (`apps/site`): site estático institucional voltado para donos de

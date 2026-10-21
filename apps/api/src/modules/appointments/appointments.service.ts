@@ -10,6 +10,7 @@ import { Between, Repository } from 'typeorm';
 import {
   AppointmentStatus,
   JwtPayload,
+  GradeHorarios,
   Paginated,
   SLOT_MINUTES,
   UserRole,
@@ -55,6 +56,7 @@ export class AppointmentsService {
 
     const inicio = new Date(dto.dataHora);
     const fim = new Date(inicio.getTime() + duracaoTotalMin * 60_000);
+    await this.assertDentroDoExpediente(tenantId, dto.barbeiroId, inicio, duracaoTotalMin);
     await this.assertSlotFree(tenantId, dto.barbeiroId, inicio, fim);
 
     const agendamento = this.repo.create({
@@ -97,50 +99,78 @@ export class AppointmentsService {
   }
 
   /**
-   * Grade de horários Manhã/Tarde para um dia, a partir do expediente
-   * configurado da barbearia (dias fechados retornam aberto=false).
+   * Grade Manhã/Tarde de um barbeiro num dia, a partir do expediente EFETIVO
+   * dele (folga → horário próprio ∩ barbearia → barbearia). Um slot só fica
+   * disponível se o atendimento inteiro (`duracaoMin`) cabe no bloco e não
+   * encosta em outro agendamento — o mesmo critério que o createBooking aplica.
    */
-  async getAvailability(tenantId: string, barbeiroId: string, data: string) {
-    const dia = new Date(`${data}T00:00:00`);
-    const expediente = await this.schedule.getDia(tenantId, dia.getDay());
-    if (!expediente.aberto || expediente.blocos.length === 0) {
-      return { aberto: false, manha: [], tarde: [] };
-    }
+  async getAvailability(
+    tenantId: string,
+    barbeiroId: string,
+    data: string,
+    duracaoMin: number = SLOT_MINUTES,
+  ): Promise<GradeHorarios> {
+    const efetivo = await this.schedule.getDiaEfetivo(tenantId, barbeiroId, data);
+    if (!efetivo.aberto) return { aberto: false, motivo: efetivo.motivo, manha: [], tarde: [] };
 
-    const ocupados = await this.repo.find({
-      where: {
-        tenantId,
-        barbeiroId,
-        dataHora: Between(startOfDay(dia), endOfDay(dia)),
-      },
+    const dia = new Date(`${data}T00:00:00`);
+    const ocupados = await this.intervalosOcupados(tenantId, barbeiroId, dia);
+    const agora = Date.now();
+
+    const manha: GradeHorarios['manha'] = [];
+    const tarde: GradeHorarios['tarde'] = [];
+    for (const bloco of efetivo.blocos) {
+      const ini = toMinutes(bloco.inicio);
+      const fimBloco = toMinutes(bloco.fim);
+      for (let m = ini; m < fimBloco; m += SLOT_MINUTES) {
+        const inicio = new Date(dia);
+        inicio.setHours(Math.floor(m / 60), m % 60, 0, 0);
+        const fim = new Date(inicio.getTime() + duracaoMin * 60_000);
+        const disponivel =
+          m + duracaoMin <= fimBloco &&
+          inicio.getTime() >= agora &&
+          !ocupados.some((o) => inicio < o.fim && o.inicio < fim);
+        (m < CORTE_MANHA_MIN ? manha : tarde).push({ hora: hhmm(inicio), disponivel });
+      }
+    }
+    return { aberto: true, manha, tarde };
+  }
+
+  /**
+   * Barra reserva fora do expediente efetivo do barbeiro (folga, dia em que
+   * não atende, fora das faixas, atendimento que estoura o bloco ou passado).
+   * Sobreposição com outro agendamento fica com o assertSlotFree (409).
+   */
+  private async assertDentroDoExpediente(
+    tenantId: string,
+    barbeiroId: string,
+    inicio: Date,
+    duracaoMin: number,
+  ): Promise<void> {
+    const efetivo = await this.schedule.getDiaEfetivo(tenantId, barbeiroId, ymd(inicio));
+    const m = inicio.getHours() * 60 + inicio.getMinutes();
+    const cabe = efetivo.blocos.some(
+      (b) => toMinutes(b.inicio) <= m && m + duracaoMin <= toMinutes(b.fim),
+    );
+    if (!efetivo.aberto || !cabe) {
+      throw new BadRequestException('Horário fora do expediente do barbeiro.');
+    }
+    if (inicio.getTime() < Date.now()) {
+      throw new BadRequestException('Esse horário já passou.');
+    }
+  }
+
+  /** Agendamentos ativos (não recusados) do barbeiro no dia, como intervalos. */
+  private async intervalosOcupados(tenantId: string, barbeiroId: string, dia: Date) {
+    const doDia = await this.repo.find({
+      where: { tenantId, barbeiroId, dataHora: Between(startOfDay(dia), endOfDay(dia)) },
     });
-    const intervalosOcupados = ocupados
+    return doDia
       .filter((a) => a.status !== AppointmentStatus.RECUSADO)
       .map((a) => {
         const i = new Date(a.dataHora);
         return { inicio: i, fim: new Date(i.getTime() + a.duracaoTotalMin * 60_000) };
       });
-
-    const manha: { hora: string; disponivel: boolean }[] = [];
-    const tarde: { hora: string; disponivel: boolean }[] = [];
-
-    for (const bloco of expediente.blocos) {
-      const ini = toMinutes(bloco.inicio);
-      const fim = toMinutes(bloco.fim);
-      for (let m = ini; m < fim; m += SLOT_MINUTES) {
-        const slot = new Date(dia);
-        slot.setHours(Math.floor(m / 60), m % 60, 0, 0);
-        const livre = !intervalosOcupados.some((o) => slot >= o.inicio && slot < o.fim);
-        const passado = slot.getTime() < Date.now();
-        const item = {
-          hora: `${String(slot.getHours()).padStart(2, '0')}:${String(slot.getMinutes()).padStart(2, '0')}`,
-          disponivel: livre && !passado,
-        };
-        (m < CORTE_MANHA_MIN ? manha : tarde).push(item);
-      }
-    }
-
-    return { aberto: true, manha, tarde };
   }
 
   // ----- Cliente: histórico e próximo agendamento ---------------------------
@@ -291,4 +321,13 @@ function endOfDay(d: Date): Date {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
   return x;
+}
+
+function hhmm(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/** Data local (fuso do processo — TZ=America/Sao_Paulo em produção) 'YYYY-MM-DD'. */
+function ymd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

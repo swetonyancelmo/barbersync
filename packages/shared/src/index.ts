@@ -130,6 +130,70 @@ export function defaultExpediente(): ExpedienteDia[] {
 }
 
 // ---------------------------------------------------------------------------
+// Disponibilidade por barbeiro (herda a barbearia, pode personalizar o dia)
+// ---------------------------------------------------------------------------
+
+/** Por que um dia não tem horário para aquele barbeiro. */
+export type MotivoFechado = 'fechado' | 'folga' | 'nao-atende';
+
+/**
+ * Dia da semana na visão de um barbeiro. `personalizado:false` = segue a
+ * barbearia (blocos = os da barbearia); true = blocos próprios, sempre
+ * contidos nos da barbearia.
+ */
+export interface ExpedienteBarbeiroDia extends ExpedienteDia {
+  personalizado: boolean;
+  /** Expediente da barbearia no mesmo dia, para referência na tela. */
+  barbearia: { aberto: boolean; blocos: Bloco[] };
+}
+
+/** Folga de dia inteiro numa data específica (férias, consulta, feriado). */
+export interface Folga {
+  id: string;
+  /** 'YYYY-MM-DD' */
+  data: string;
+  motivo: string | null;
+}
+
+const toMin = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+};
+const toHHmm = (min: number) =>
+  `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+
+/**
+ * Interseção de duas listas de blocos (ex.: horário do barbeiro ∩ horário da
+ * barbearia). Ignora blocos vazios/invertidos; resultado ordenado.
+ */
+export function intersectBlocos(a: Bloco[], b: Bloco[]): Bloco[] {
+  const out: Bloco[] = [];
+  for (const x of a) {
+    for (const y of b) {
+      const ini = Math.max(toMin(x.inicio), toMin(y.inicio));
+      const fim = Math.min(toMin(x.fim), toMin(y.fim));
+      if (ini < fim) out.push({ inicio: toHHmm(ini), fim: toHHmm(fim) });
+    }
+  }
+  return out.sort((p, q) => toMin(p.inicio) - toMin(q.inicio));
+}
+
+/** true se cada bloco de `dentro` está inteiro dentro de algum bloco de `fora`. */
+export function blocosContidos(dentro: Bloco[], fora: Bloco[]): boolean {
+  return dentro.every((x) =>
+    fora.some((y) => toMin(y.inicio) <= toMin(x.inicio) && toMin(x.fim) <= toMin(y.fim)),
+  );
+}
+
+/** Grade de horários de um dia para um barbeiro (resposta da disponibilidade). */
+export interface GradeHorarios {
+  aberto: boolean;
+  motivo?: MotivoFechado;
+  manha: { hora: string; disponivel: boolean }[];
+  tarde: { hora: string; disponivel: boolean }[];
+}
+
+// ---------------------------------------------------------------------------
 // Link de agendamento da barbearia (app.barbersync.com/<slug>)
 // ---------------------------------------------------------------------------
 

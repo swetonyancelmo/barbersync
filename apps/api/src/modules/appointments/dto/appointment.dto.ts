@@ -1,8 +1,12 @@
+import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsArray,
   IsDateString,
+  IsInt,
   IsOptional,
+  Max,
+  Min,
   IsUUID,
 } from 'class-validator';
 
@@ -36,4 +40,12 @@ export class AvailabilityQueryDto {
   /** Data no formato YYYY-MM-DD. */
   @IsDateString()
   data: string;
+
+  /** Duração somada dos serviços escolhidos (min) — esconde slot que estouraria o bloco. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(5)
+  @Max(480)
+  duracao?: number;
 }

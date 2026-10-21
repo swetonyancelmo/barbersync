@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { PublicBarbearia } from '@barbersync/shared';
+import type { MotivoFechado, PublicBarbearia } from '@barbersync/shared';
 import { useAuth } from '@/lib/auth';
 import { api, ApiError } from '@/lib/api';
 import { fetchDisponibilidade, Grade } from '@/lib/public-api';
@@ -81,10 +81,14 @@ export function BookingFlow({ barbearia }: { barbearia: PublicBarbearia }) {
 
   const dataStr = useMemo(() => selData.toISOString().slice(0, 10), [selData]);
 
+  const servicosSel = servicos.filter((s) => selServ.includes(s.id));
+  const total = servicosSel.reduce((sum, s) => sum + s.preco, 0);
+  const duracao = servicosSel.reduce((sum, s) => sum + s.duracaoMin, 0);
+
   useEffect(() => {
     if (step !== 2 || !selBarb) return;
     setSelHora(null);
-    fetchDisponibilidade(slug, selBarb, dataStr)
+    fetchDisponibilidade(slug, selBarb, dataStr, duracao || undefined)
       .then((g) => {
         setGrade(g);
         if (horaPendente) {
@@ -94,11 +98,8 @@ export function BookingFlow({ barbearia }: { barbearia: PublicBarbearia }) {
         }
       })
       .catch(() => setGrade(null));
-  }, [step, selBarb, dataStr, slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [step, selBarb, dataStr, slug, duracao]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const servicosSel = servicos.filter((s) => selServ.includes(s.id));
-  const total = servicosSel.reduce((sum, s) => sum + s.preco, 0);
-  const duracao = servicosSel.reduce((sum, s) => sum + s.duracaoMin, 0);
 
   async function confirmar() {
     if (!selBarb || !selHora) return;
@@ -175,6 +176,7 @@ export function BookingFlow({ barbearia }: { barbearia: PublicBarbearia }) {
   }
 
   const dias = nextDays(7);
+  const barbeiroSel = barbeiros.find((b) => b.id === selBarb);
 
   return (
     <div className="px-[18px] pb-[calc(110px+env(safe-area-inset-bottom))] pt-6">
@@ -293,7 +295,12 @@ export function BookingFlow({ barbearia }: { barbearia: PublicBarbearia }) {
 
           {grade && !grade.aberto && (
             <Card className="p-7 text-center">
-              <p className="text-slate">Barbearia fechada neste dia. Escolha outra data.</p>
+              <p className="text-slate">{motivoTexto(grade.motivo, barbeiroSel?.nome)} Escolha outra data.</p>
+            </Card>
+          )}
+          {grade?.aberto && ![...grade.manha, ...grade.tarde].some((s) => s.disponivel) && (
+            <Card className="mb-4 p-5 text-center">
+              <p className="text-slate">Nenhum horário livre neste dia. Escolha outra data.</p>
             </Card>
           )}
           {(['manha', 'tarde'] as const).map((periodo) => (
@@ -363,6 +370,14 @@ const CARD_ITEM =
 /** Chip de data/horário: marcado = gradiente de poste. */
 const CHIP_ITEM =
   'data-[state=on]:border-pole-2 data-[state=on]:bg-gradient-to-b data-[state=on]:from-pole-bright data-[state=on]:to-pole-2 data-[state=on]:text-on-pole';
+
+/** Texto do dia sem horário, a partir do motivo que a API devolve. */
+function motivoTexto(motivo: MotivoFechado | undefined, barbeiro?: string): string {
+  const quem = barbeiro?.split(' ')[0] ?? 'O barbeiro';
+  if (motivo === 'folga') return `${quem} está de folga neste dia.`;
+  if (motivo === 'nao-atende') return `${quem} não atende neste dia.`;
+  return 'Barbearia fechada neste dia.';
+}
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (

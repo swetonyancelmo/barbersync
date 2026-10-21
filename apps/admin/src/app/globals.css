@@ -239,3 +239,13 @@ button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
 }
 
 }
+
+@layer utilities {
+  /* Rolagem horizontal sem barra visível (seletor de barbeiro em Horários) */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

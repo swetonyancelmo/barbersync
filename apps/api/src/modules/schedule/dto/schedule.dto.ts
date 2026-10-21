@@ -3,10 +3,13 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsDateString,
   IsInt,
+  IsOptional,
   IsString,
   Matches,
   Max,
+  MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -45,4 +48,30 @@ export class UpdateScheduleDto {
   @ValidateNested({ each: true })
   @Type(() => ExpedienteDiaDto)
   dias: ExpedienteDiaDto[];
+}
+
+/** Dia da semana do barbeiro: personalizado=false volta a seguir a barbearia. */
+export class ExpedienteBarbeiroDiaDto extends ExpedienteDiaDto {
+  @IsBoolean()
+  personalizado: boolean;
+}
+
+export class UpdateBarberScheduleDto {
+  @IsArray()
+  @ArrayMaxSize(7)
+  @ValidateNested({ each: true })
+  @Type(() => ExpedienteBarbeiroDiaDto)
+  dias: ExpedienteBarbeiroDiaDto[];
+}
+
+export class CreateFolgaDto {
+  /** 'YYYY-MM-DD' */
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'data deve ser YYYY-MM-DD' })
+  data: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  motivo?: string;
 }
