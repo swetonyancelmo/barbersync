@@ -17,7 +17,9 @@ import { JwtStrategy } from './jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET', 'dev-secret'),
+        // Sem valor padrão de propósito: se JWT_SECRET faltar, a API não sobe
+        // (melhor que assinar tokens com uma chave pública). Veja o .env.example.
+        secret: config.getOrThrow<string>('JWT_SECRET'),
         // expiresIn aceita '7d' em runtime; o tipo do pacote é restritivo demais.
         signOptions: {
           expiresIn: config.get<string>('JWT_EXPIRES_IN', '7d') as unknown as number,
